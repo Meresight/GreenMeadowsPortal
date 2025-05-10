@@ -1,0 +1,249 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@model DocumentUploadViewModel
+
+@{
+    ViewData["Title"] = "Upload Document";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+}
+
+<div class="page-header">
+    <h1>Upload Document</h1>
+    <nav class="breadcrumb">
+        <a asp-controller="Dashboard" asp-action="@(Model.Role == "Admin" ? "AdminDashboard" : "StaffDashboard")">Dashboard</a> /
+        <a asp-controller="Document" asp-action="Index">Documents</a> /
+        Upload
+    </nav>
+</div>
+
+<!-- Upload Form -->
+<div class="upload-container">
+    <form asp-controller="Document" asp-action="Upload" method="post" enctype="multipart/form-data" id="uploadForm">
+        @Html.AntiForgeryToken()
+
+        <!-- If there are validation errors -->
+        @if (!ViewContext.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i>
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <button class="close-alert"><i class="fas fa-times"></i></button>
+            </div>
+        }
+
+        <div class="form-section">
+            <h2>Document Details</h2>
+
+            <div class="form-group">
+                <label asp-for="Name" class="form-label">Document Name</label>
+                <input asp-for="Name" class="form-control" placeholder="Enter document name" />
+                <span asp-validation-for="Name" class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Description" class="form-label">Description</label>
+                <textarea asp-for="Description" class="form-control" rows="3" placeholder="Enter a brief description of the document"></textarea>
+                <span asp-validation-for="Description" class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Category" class="form-label">Category</label>
+                <select asp-for="Category" asp-items="Model.Categories" class="form-control">
+                    <option value="">-- Select Category --</option>
+                </select>
+                <span asp-validation-for="Category" class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Visible To</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="visible-all" name="VisibleTo" value="All" checked="checked">
+                        <label for="visible-all">All Users</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="visible-homeowners" name="VisibleTo" value="Homeowners">
+                        <label for="visible-homeowners">Homeowners Only</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="visible-staff" name="VisibleTo" value="Staff">
+                        <label for="visible-staff">Staff &amp; Admin Only</label>
+                    </div>
+                    @if (Model.Role == "Admin")
+                    {
+                        <div class="radio-option">
+                            <input type="radio" id="visible-admin" name="VisibleTo" value="Admin">
+                            <label for="visible-admin">Admin Only</label>
+                        </div>
+                    }
+                </div>
+                <span asp-validation-for="VisibleTo" class="validation-error"></span>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2>File Upload</h2>
+
+            <div class="form-group">
+                <label asp-for="DocumentFile" class="form-label">Document File</label>
+                <div class="file-upload-container">
+                    <div class="file-upload-box" id="file-upload-box">
+                        <i class="fas fa-upload"></i>
+                        <p>Drag & drop your file here<br>or</p>
+                        <label for="DocumentFile" class="btn primary-btn">Choose File</label>
+                        <input asp-for="DocumentFile" type="file" id="DocumentFile" style="display: none;" />
+                        <p class="file-types">Supported file types: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, PNG</p>
+                    </div>
+                    <div id="file-preview" class="file-preview" style="display: none;">
+                        <div class="file-preview-header">
+                            <i class="fas fa-file" id="file-icon"></i>
+                            <div class="file-preview-info">
+                                <h4 id="file-name">filename.pdf</h4>
+                                <p id="file-size">2.5 MB</p>
+                            </div>
+                            <button type="button" id="remove-file" class="btn small-btn danger-btn">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <span asp-validation-for="DocumentFile" class="validation-error"></span>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" id="submitBtn" class="btn primary-btn">
+                <i class="fas fa-upload"></i> Upload Document
+            </button>
+            <a asp-controller="Document" asp-action="Index" class="btn secondary-btn">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('DocumentFile');
+            const fileUploadBox = document.getElementById('file-upload-box');
+            const filePreview = document.getElementById('file-preview');
+            const fileName = document.getElementById('file-name');
+            const fileSize = document.getElementById('file-size');
+            const fileIcon = document.getElementById('file-icon');
+            const removeFileBtn = document.getElementById('remove-file');
+            const form = document.getElementById('uploadForm');
+            const submitBtn = document.getElementById('submitBtn');
+
+            function formatBytes(bytes, decimals = 2) {
+                if (bytes === 0) return '0 Bytes';
+
+                const k = 1024;
+                const dm = decimals < 0 ? 0 : decimals;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+            }
+
+            function getFileIcon(fileType) {
+                const type = fileType.toLowerCase();
+                if (type.includes('pdf')) {
+                    return 'fa-file-pdf';
+                } else if (type.includes('doc')) {
+                    return 'fa-file-word';
+                } else if (type.includes('xls')) {
+                    return 'fa-file-excel';
+                } else if (type.includes('ppt')) {
+                    return 'fa-file-powerpoint';
+                } else if (type.includes('jpg') || type.includes('jpeg') || type.includes('png') || type.includes('gif')) {
+                    return 'fa-file-image';
+                } else {
+                    return 'fa-file';
+                }
+            }
+
+            if (fileInput) {
+                fileInput.addEventListener('change', function(e) {
+                    if (this.files && this.files[0]) {
+                        const file = this.files[0];
+
+                        // Update preview
+                        fileName.textContent = file.name;
+                        fileSize.textContent = formatBytes(file.size);
+                        fileIcon.className = 'fas ' + getFileIcon(file.type);
+
+                        // Show preview, hide upload box
+                        fileUploadBox.style.display = 'none';
+                        filePreview.style.display = 'block';
+                    }
+                });
+            }
+
+            if (removeFileBtn) {
+                removeFileBtn.addEventListener('click', function() {
+                    // Clear file input
+                    fileInput.value = '';
+
+                    // Hide preview, show upload box
+                    filePreview.style.display = 'none';
+                    fileUploadBox.style.display = 'flex';
+                });
+            }
+
+            // Drag and drop functionality
+            if (fileUploadBox) {
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    fileUploadBox.addEventListener(eventName, preventDefaults, false);
+                });
+
+                function preventDefaults(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    fileUploadBox.addEventListener(eventName, highlight, false);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    fileUploadBox.addEventListener(eventName, unhighlight, false);
+                });
+
+                function highlight() {
+                    fileUploadBox.classList.add('highlight');
+                }
+
+                function unhighlight() {
+                    fileUploadBox.classList.remove('highlight');
+                }
+
+                fileUploadBox.addEventListener('drop', function(e) {
+                    const dt = e.dataTransfer;
+                    const files = dt.files;
+
+                    if (files.length) {
+                        fileInput.files = files;
+
+                        // Trigger change event
+                        const event = new Event('change', { bubbles: true });
+                        fileInput.dispatchEvent(event);
+                    }
+                });
+            }
+
+            // Form submission
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    // Disable the submit button to prevent double clicks
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+
+                    // Return true to continue with the form submission
+                    return true;
+                });
+            }
+        });
+    </script>
+}

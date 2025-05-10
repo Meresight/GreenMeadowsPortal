@@ -1,0 +1,78 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@model ServiceRequestCreateViewModel
+
+@{
+    ViewData["Title"] = "Create Service Request - Green Meadows Portal";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/service-requests.css" />
+}
+
+<div class="page-header">
+    <h1>Create Service Request</h1>
+    <nav class="breadcrumb">
+        <a asp-controller="Dashboard" asp-action="@(Model.Role == "Admin" ? "AdminDashboard" : (Model.Role == "Staff" ? "StaffDashboard" : "HomeownerDashboard"))">Dashboard</a> /
+        <a asp-controller="ServiceRequests" asp-action="Index">Service Requests</a> / Create
+    </nav>
+</div>
+
+<div class="content-section">
+    <div class="form-container">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+            <div class="form-section">
+                <div class="form-group">
+                    <label asp-for="IssueType" class="form-label">Issue Type</label>
+                    <select asp-for="IssueType" class="form-control" required>
+                        <option value="">-- Select Issue Type --</option>
+                        <option value="Plumbing">Plumbing</option>
+                        <option value="Electrical">Electrical</option>
+                        <option value="HVAC">HVAC (Heating/Cooling)</option>
+                        <option value="Security">Security</option>
+                        <option value="Landscaping">Landscaping</option>
+                        <option value="Pest Control">Pest Control</option>
+                        <option value="Cleaning">Cleaning</option>
+                        <option value="Appliance">Appliance</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <span asp-validation-for="IssueType" class="validation-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Location" class="form-label">Unit/Location</label>
+                    <input asp-for="Location" class="form-control" placeholder="e.g. Unit 101, Kitchen" maxlength="100" />
+                    <span asp-validation-for="Location" class="validation-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Description" class="form-label">Description</label>
+                    <textarea asp-for="Description" class="form-control" rows="5" placeholder="Please describe the issue in detail..." required maxlength="1000"></textarea>
+                    <span asp-validation-for="Description" class="validation-message"></span>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a asp-action="Index" class="btn secondary-btn">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="btn primary-btn">
+                    <i class="fas fa-paper-plane"></i> Submit Request
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="notes-section">
+        <h3><i class="fas fa-info-circle"></i> Important Notes</h3>
+        <ul>
+            <li>For <strong>emergency issues</strong> like major water leaks or electrical hazards, please call our emergency line at (555) 123-4567.</li>
+            <li>Please provide as much detail as possible about the issue to help our staff address it efficiently.</li>
+            <li>You will receive a notification when your request status changes.</li>
+            <li>Typical response time for non-emergency issues is 24-48 hours.</li>
+        </ul>
+    </div>
+</div>

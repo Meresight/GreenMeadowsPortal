@@ -1,0 +1,426 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@model NotificationPreferencesViewModel
+
+@{
+    ViewData["Title"] = "Notification Preferences - Green Meadows Portal";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Meadows | Notification Preferences</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/admin.css">
+    <link rel="stylesheet" href="~/css/notification-preferences.css">
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar Navigation -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Green Meadows</h3>
+                <div class="sidebar-logo">GM</div>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <img src="@Model.ProfileImageUrl" alt="User Avatar">
+                </div>
+                <div class="user-info">
+                    <h4>@Model.FirstName</h4>
+                    <p>@Model.Role</p>
+                </div>
+            </div>
+
+            <ul class="sidebar-menu">
+                @if (Model.Role == "Admin")
+                {
+                    <li><a asp-controller="Dashboard" asp-action="AdminDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a asp-controller="Dashboard" asp-action="UserManagement"><i class="fas fa-users"></i> User Management</a></li>
+                }
+                else if (Model.Role == "Staff")
+                {
+                    <li><a asp-controller="Dashboard" asp-action="StaffDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                }
+                else
+                {
+                    <li><a asp-controller="Dashboard" asp-action="HomeownerDashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+                }
+
+                <li><a asp-controller="Announcement" asp-action="Index"><i class="fas fa-bullhorn"></i> Announcements</a></li>
+                <li><a asp-controller="Dashboard" asp-action="Billing"><i class="fas fa-file-invoice-dollar"></i> Billing</a></li>
+                <li><a href="/Facilities"><i class="fas fa-swimming-pool"></i> Facilities</a></li>
+                <li><a href="/ServiceRequests"><i class="fas fa-tools"></i> Service Requests</a></li>
+                <li><a href="/Documents"><i class="fas fa-file-alt"></i> Documents</a></li>
+                <li><a href="/Forum"><i class="fas fa-comments"></i> Community Forum</a></li>
+                <li><a href="/Security"><i class="fas fa-shield-alt"></i> Security</a></li>
+                <li><a href="/Events"><i class="fas fa-calendar-alt"></i> Events</a></li>
+                <li><a href="/Feedback"><i class="fas fa-comment-dots"></i> Feedback</a></li>
+                <li><a href="/Contacts"><i class="fas fa-address-book"></i> Contacts</a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i>Logout</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <!-- Top Navigation -->
+            <header class="top-navbar">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="back-button">
+                    <a asp-controller="Notification" asp-action="Index">
+                        <i class="fas fa-arrow-left"></i> Back to Notifications
+                    </a>
+                </div>
+
+                <div class="navbar-right">
+                    <div class="notification-bell">
+                        <a asp-controller="Notification" asp-action="Index">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-count">0</span>
+                        </a>
+                    </div>
+                    <div class="inbox-icon">
+                        <a asp-controller="Contact" asp-action="Inbox">
+                            <i class="fas fa-envelope"></i>
+                            <span class="unread-messages" id="unread-message-count">0</span>
+                        </a>
+                    </div>
+                    <div class="user-dropdown">
+                        <img src="@Model.ProfileImageUrl" alt="User Avatar">
+                        <span>@Model.FirstName</span>
+                        <i class="fas fa-chevron-down"></i>
+
+                        <div class="dropdown-menu">
+                            <a asp-controller="Account" asp-action="Profile"><i class="fas fa-user"></i> My Profile</a>
+                            <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                            <a asp-controller="Account" asp-action="Logout"><i class="fas fa-sign-out-alt"></i>Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="main-content">
+                <div class="page-header">
+                    <h1>Notification Preferences</h1>
+                    <nav class="breadcrumb">
+                        <a asp-controller="Dashboard" asp-action="@(Model.Role == "Admin" ? "AdminDashboard" : (Model.Role == "Staff" ? "StaffDashboard" : "HomeownerDashboard"))">Dashboard</a> /
+                        <a asp-controller="Notification" asp-action="Index">Notifications</a> /
+                        Preferences
+                    </nav>
+                </div>
+
+                <!-- Success/Error Messages -->
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                        <button class="close-alert"><i class="fas fa-times"></i></button>
+                    </div>
+                }
+
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+                        <button class="close-alert"><i class="fas fa-times"></i></button>
+                    </div>
+                }
+
+                <!-- Preferences Form -->
+                <div class="preferences-container">
+                    <form asp-action="SavePreferences" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="preferences-section">
+                            <h2>Delivery Methods</h2>
+                            <p class="section-description">Choose how you'd like to receive notifications from Green Meadows Portal.</p>
+
+                            <div class="preferences-grid">
+                                <div class="preference-card">
+                                    <div class="preference-header">
+                                        <div class="preference-icon portal-icon">
+                                            <i class="fas fa-desktop"></i>
+                                        </div>
+                                        <h3>Portal Notifications</h3>
+                                    </div>
+                                    <div class="preference-body">
+                                        <p>Notifications within the Green Meadows Portal.</p>
+                                        <div class="form-info">
+                                            <i class="fas fa-info-circle"></i>
+                                            <span>Portal notifications are always enabled.</span>
+                                        </div>
+                                    </div>
+                                    <div class="preference-toggle">
+                                        <label class="toggle-switch disabled">
+                                            <input type="checkbox" checked disabled>
+                                            <span class="toggle-slider"></span>
+                                            <span class="toggle-label">Always On</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="preference-card">
+                                    <div class="preference-header">
+                                        <div class="preference-icon email-icon">
+                                            <i class="fas fa-envelope"></i>
+                                        </div>
+                                        <h3>Email Notifications</h3>
+                                    </div>
+                                    <div class="preference-body">
+                                        <p>Receive notifications via email.</p>
+                                    </div>
+                                    <div class="preference-toggle">
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" asp-for="ReceiveEmailNotifications">
+                                            <span class="toggle-slider"></span>
+                                            <span class="toggle-label">@(Model.ReceiveEmailNotifications ? "Enabled" : "Disabled")</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="preference-card">
+                                    <div class="preference-header">
+                                        <div class="preference-icon sms-icon">
+                                            <i class="fas fa-sms"></i>
+                                        </div>
+                                        <h3>SMS Notifications</h3>
+                                    </div>
+                                    <div class="preference-body">
+                                        <p>Receive text message notifications.</p>
+                                    </div>
+                                    <div class="preference-toggle">
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" asp-for="ReceiveSmsNotifications">
+                                            <span class="toggle-slider"></span>
+                                            <span class="toggle-label">@(Model.ReceiveSmsNotifications ? "Enabled" : "Disabled")</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="preferences-section">
+                            <h2>Notification Categories</h2>
+                            <p class="section-description">Choose which types of notifications you'd like to receive.</p>
+
+                            <div class="categories-list">
+                                <div class="category-item">
+                                    <div class="category-info">
+                                        <div class="category-icon announcement-bg">
+                                            <i class="fas fa-bullhorn"></i>
+                                        </div>
+                                        <div class="category-details">
+                                            <h4>Announcements</h4>
+                                            <p>Community news, events, and important announcements.</p>
+                                        </div>
+                                    </div>
+                                    <div class="category-toggle">
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" asp-for="NotifyForAnnouncements">
+                                            <span class="toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="category-item">
+                                    <div class="category-info">
+                                        <div class="category-icon service-bg">
+                                            <i class="fas fa-tools"></i>
+                                        </div>
+                                        <div class="category-details">
+                                            <h4>Service Requests</h4>
+                                            <p>Updates about your maintenance and service requests.</p>
+                                        </div>
+                                    </div>
+                                    <div class="category-toggle">
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" asp-for="NotifyForServiceRequests">
+                                            <span class="toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="category-item">
+                                    <div class="category-info">
+                                        <div class="category-icon billing-bg">
+                                            <i class="fas fa-file-invoice-dollar"></i>
+                                        </div>
+                                        <div class="category-details">
+                                            <h4>Billing Updates</h4>
+                                            <p>New invoices, payment reminders, and receipts.</p>
+                                        </div>
+                                    </div>
+                                    <div class="category-toggle">
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" asp-for="NotifyForBillingUpdates">
+                                            <span class="toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="category-item">
+                                    <div class="category-info">
+                                        <div class="category-icon event-bg">
+                                            <i class="fas fa-calendar-alt"></i>
+                                        </div>
+                                        <div class="category-details">
+                                            <h4>Events</h4>
+                                            <p>Community events, reminders, and changes.</p>
+                                        </div>
+                                    </div>
+                                    <div class="category-toggle">
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" asp-for="NotifyForEvents">
+                                            <span class="toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="category-item">
+                                    <div class="category-info">
+                                        <div class="category-icon forum-bg">
+                                            <i class="fas fa-comments"></i>
+                                        </div>
+                                        <div class="category-details">
+                                            <h4>Forum Activity</h4>
+                                            <p>Replies to your posts and mentions in the community forum.</p>
+                                        </div>
+                                    </div>
+                                    <div class="category-toggle">
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" asp-for="NotifyForForumActivity">
+                                            <span class="toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="preferences-section">
+                            <h2>Notification Frequency</h2>
+                            <p class="section-description">Choose how often you'd like to receive email and SMS notifications.</p>
+
+                            <div class="frequency-options">
+                                <div class="frequency-option">
+                                    <input type="radio" id="frequency-realtime" name="frequency" value="realtime" checked>
+                                    <label for="frequency-realtime">
+                                        <div class="option-title">Real-time</div>
+                                        <div class="option-description">Send notifications as they occur.</div>
+                                    </label>
+                                </div>
+
+                                <div class="frequency-option">
+                                    <input type="radio" id="frequency-daily" name="frequency" value="daily">
+                                    <label for="frequency-daily">
+                                        <div class="option-title">Daily Digest</div>
+                                        <div class="option-description">Send a daily summary of all notifications.</div>
+                                    </label>
+                                </div>
+
+                                <div class="frequency-option">
+                                    <input type="radio" id="frequency-weekly" name="frequency" value="weekly">
+                                    <label for="frequency-weekly">
+                                        <div class="option-title">Weekly Digest</div>
+                                        <div class="option-description">Send a weekly summary of all notifications.</div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn primary-btn">
+                                <i class="fas fa-save"></i> Save Preferences
+                            </button>
+                            <a asp-controller="Notification" asp-action="Index" class="btn secondary-btn">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="main-footer">
+                <div class="footer-content">
+                    <p>&copy; @DateTime.Now.Year Green Meadows Subdivision. All rights reserved.</p>
+                    <div class="footer-links">
+                        <a href="/Privacy">Privacy Policy</a>
+                        <a href="/Terms">Terms of Service</a>
+                        <a href="/Contact">Contact Us</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Mobile sidebar toggle
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                });
+            }
+
+            // User dropdown toggle
+            const userDropdown = document.querySelector('.user-dropdown');
+            if (userDropdown) {
+                userDropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    this.querySelector('.dropdown-menu').classList.toggle('show');
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (!userDropdown.contains(e.target)) {
+                        userDropdown.querySelector('.dropdown-menu').classList.remove('show');
+                    }
+                });
+            }
+
+            // Toggle switch labels
+            const toggleSwitches = document.querySelectorAll('.toggle-switch:not(.disabled)');
+            toggleSwitches.forEach(function(toggle) {
+                const checkbox = toggle.querySelector('input[type="checkbox"]');
+                const label = toggle.querySelector('.toggle-label');
+
+                checkbox.addEventListener('change', function() {
+                    label.textContent = this.checked ? 'Enabled' : 'Disabled';
+                });
+            });
+
+            // Close alert message
+            const closeAlerts = document.querySelectorAll('.close-alert');
+            closeAlerts.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    this.closest('.alert').style.display = 'none';
+                });
+            });
+
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function() {
+                document.querySelectorAll('.alert').forEach(function(alert) {
+                    alert.style.display = 'none';
+                });
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

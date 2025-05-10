@@ -1,0 +1,227 @@
+﻿@model GreenMeadowsPortal.ViewModels.FeedbackCreateViewModel
+@{
+    ViewData["Title"] = "Submit Feedback";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/feedback.css">
+}
+
+<div class="page-header">
+    <div>
+        <h1>Submit Feedback</h1>
+        <nav class="breadcrumb">
+            <a asp-action="Index">Feedback</a> <span> / Submit</span>
+        </nav>
+    </div>
+</div>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-error">
+        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+        <button class="close-alert"><i class="fas fa-times"></i></button>
+    </div>
+}
+
+<div class="feedback-form">
+    <form asp-action="Create" method="post" novalidate>
+        @Html.AntiForgeryToken()
+
+        <div class="form-group">
+            <label asp-for="Type">Feedback Type <span class="text-danger">*</span></label>
+            <select asp-for="Type" asp-items="Model.TypeOptions" class="form-control">
+                <option value="">Select feedback type</option>
+            </select>
+            <span asp-validation-for="Type" class="text-danger"></span>
+            <div class="form-help">
+                Choose the type that best describes your feedback:
+                <ul class="mt-2">
+                    <li><strong>Suggestion:</strong> Ideas for improvement or new features</li>
+                    <li><strong>Complaint:</strong> Issues, problems, or concerns</li>
+                    <li><strong>General:</strong> Questions, comments, or general feedback</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Category">Category (Optional)</label>
+            <select asp-for="Category" asp-items="Model.CategoryOptions" class="form-control">
+            </select>
+            <span asp-validation-for="Category" class="text-danger"></span>
+            <div class="form-help">
+                Selecting a category helps us route your feedback to the right team.
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Subject">Subject <span class="text-danger">*</span></label>
+            <input asp-for="Subject" class="form-control" placeholder="Brief description of your feedback" maxlength="200">
+            <span asp-validation-for="Subject" class="text-danger"></span>
+            <div class="form-help">
+                Maximum 200 characters. Be clear and specific to help us understand your feedback quickly.
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Description">Details <span class="text-danger">*</span></label>
+            <textarea asp-for="Description" class="form-control" rows="6" placeholder="Provide detailed information about your feedback..."></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+            <div class="form-help">
+                Please provide as much detail as possible. For complaints, include:
+                <ul class="mt-2">
+                    <li>What happened?</li>
+                    <li>When did it occur?</li>
+                    <li>Where did it happen?</li>
+                    <li>How can we address this?</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Information Box -->
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>What happens next?</strong>
+                <ul class="mt-2 mb-0">
+                    <li>✓ You'll receive a confirmation email with your submission details</li>
+                    <li>✓ Our team will review your feedback within 24-48 hours</li>
+                    <li>✓ You'll be notified when your feedback is addressed</li>
+                    <li>✓ You can track the status of your submission anytime</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a asp-action="Index" class="btn">
+                <i class="fas fa-arrow-left"></i> Back to List
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-paper-plane"></i> Submit Feedback
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Helpful Tips Sidebar -->
+<div class="mt-4">
+    <div class="feedback-form">
+        <h3 class="mb-3">
+            <i class="fas fa-lightbulb text-warning"></i> Helpful Tips
+        </h3>
+        <div class="accordion" id="tipsAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                        Writing Effective Feedback
+                    </button>
+                </h2>
+                <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#tipsAccordion">
+                    <div class="accordion-body">
+                        <ul>
+                            <li>Be specific and provide examples</li>
+                            <li>Focus on facts rather than emotions</li>
+                            <li>Include screenshots or photos when relevant</li>
+                            <li>Suggest possible solutions if you have any</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingTwo">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                        Privacy & Confidentiality
+                    </button>
+                </h2>
+                <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#tipsAccordion">
+                    <div class="accordion-body">
+                        <ul>
+                            <li>Your feedback is confidential and secure</li>
+                            <li>Only authorized staff can view submissions</li>
+                            <li>We never share personal information</li>
+                            <li>Anonymous submissions are welcome</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingThree">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                        Response Timeline
+                    </button>
+                </h2>
+                <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#tipsAccordion">
+                    <div class="accordion-body">
+                        <ul>
+                            <li>General feedback: 3-5 business days</li>
+                            <li>Complaints: 24-48 hours</li>
+                            <li>Urgent matters: Same day response</li>
+                            <li>Complex issues may take longer</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Character count for subject
+            const subjectInput = document.querySelector('input[name="Subject"]');
+            if (subjectInput) {
+                const maxLength = 200;
+                const helpText = subjectInput.nextElementSibling.nextElementSibling;
+
+                function updateCharCount() {
+                    const currentLength = subjectInput.value.length;
+                    const remaining = maxLength - currentLength;
+                    helpText.innerHTML = `${remaining} characters remaining. Be clear and specific to help us understand your feedback quickly.`;
+
+                    if (remaining < 20) {
+                        helpText.style.color = 'var(--warning-color)';
+                    } else {
+                        helpText.style.color = '';
+                    }
+                }
+
+                subjectInput.addEventListener('input', updateCharCount);
+                updateCharCount();
+            }
+
+            // Auto-expand description textarea
+            const descriptionTextarea = document.querySelector('textarea[name="Description"]');
+            if (descriptionTextarea) {
+                descriptionTextarea.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = this.scrollHeight + 'px';
+                });
+            }
+
+            // Auto-hide alerts
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                const closeBtn = alert.querySelector('.close-alert');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function() {
+                        alert.style.display = 'none';
+                    });
+                }
+
+                setTimeout(function() {
+                    if (alert.classList.contains('alert-error')) {
+                        // Don't auto-hide error messages
+                    } else {
+                        alert.style.display = 'none';
+                    }
+                }, 5000);
+            });
+        });
+    </script>
+}

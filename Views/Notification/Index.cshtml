@@ -1,0 +1,464 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@model NotificationsListViewModel
+
+@{
+    ViewData["Title"] = "Notifications - Green Meadows Portal";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Meadows | Notifications</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/admin.css">
+    <link rel="stylesheet" href="~/css/notifications.css">
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar Navigation -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Green Meadows</h3>
+                <div class="sidebar-logo">GM</div>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <img src="@Model.ProfileImageUrl" alt="User Avatar">
+                </div>
+                <div class="user-info">
+                    <h4>@Model.FirstName</h4>
+                    <p>@Model.Role</p>
+                </div>
+            </div>
+
+            <ul class="sidebar-menu">
+                @if (Model.Role == "Admin")
+                {
+                    <li><a asp-controller="Dashboard" asp-action="AdminDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a asp-controller="Dashboard" asp-action="UserManagement"><i class="fas fa-users"></i> User Management</a></li>
+                }
+                else if (Model.Role == "Staff")
+                {
+                    <li><a asp-controller="Dashboard" asp-action="StaffDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                }
+                else
+                {
+                    <li><a asp-controller="Dashboard" asp-action="HomeownerDashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+                }
+
+                <li><a asp-controller="Announcement" asp-action="Index"><i class="fas fa-bullhorn"></i> Announcements</a></li>
+                <li><a asp-controller="Dashboard" asp-action="Billing"><i class="fas fa-file-invoice-dollar"></i> Billing</a></li>
+                <li><a href="/Facilities"><i class="fas fa-swimming-pool"></i> Facilities</a></li>
+                <li><a href="/ServiceRequests"><i class="fas fa-tools"></i> Service Requests</a></li>
+                <li><a href="/Documents"><i class="fas fa-file-alt"></i> Documents</a></li>
+                <li><a href="/Forum"><i class="fas fa-comments"></i> Community Forum</a></li>
+                <li><a href="/Security"><i class="fas fa-shield-alt"></i> Security</a></li>
+                <li><a href="/Events"><i class="fas fa-calendar-alt"></i> Events</a></li>
+                <li><a href="/Feedback"><i class="fas fa-comment-dots"></i> Feedback</a></li>
+                <li><a href="/Contacts"><i class="fas fa-address-book"></i> Contacts</a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i>Logout</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <!-- Top Navigation -->
+            <header class="top-navbar">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="back-button">
+                    <a asp-controller="Dashboard" asp-action="@(Model.Role == "Admin" ? "AdminDashboard" : (Model.Role == "Staff" ? "StaffDashboard" : "HomeownerDashboard"))">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+
+                <div class="navbar-right">
+                    <div class="notification-bell active">
+                        <a asp-controller="Notification" asp-action="Index">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-count">@Model.UnreadCount</span>
+                        </a>
+                    </div>
+                    <div class="inbox-icon">
+                        <a asp-controller="Contact" asp-action="Inbox">
+                            <i class="fas fa-envelope"></i>
+                            <span class="unread-messages" id="unread-message-count">0</span>
+                        </a>
+                    </div>
+                    <div class="user-dropdown">
+                        <img src="@Model.ProfileImageUrl" alt="User Avatar">
+                        <span>@Model.FirstName</span>
+                        <i class="fas fa-chevron-down"></i>
+
+                        <div class="dropdown-menu">
+                            <a asp-controller="Account" asp-action="Profile"><i class="fas fa-user"></i> My Profile</a>
+                            <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                            <a asp-controller="Account" asp-action="Logout"><i class="fas fa-sign-out-alt"></i>Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="main-content">
+                <div class="page-header">
+                    <h1>Notifications</h1>
+                    <div class="action-buttons">
+                        <a href="#" id="mark-all-read" class="btn secondary-btn">
+                            <i class="fas fa-check-double"></i> Mark All as Read
+                        </a>
+                        <a href="#" id="clear-all" class="btn danger-btn">
+                            <i class="fas fa-trash"></i> Clear All
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Success Message (if available in TempData) -->
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                        <button class="close-alert"><i class="fas fa-times"></i></button>
+                    </div>
+                }
+
+                <!-- Filter Controls -->
+                <div class="filter-controls">
+                    <div class="filter-group">
+                        <label for="filter-type">Show:</label>
+                        <select id="filter-type">
+                            <option value="all" selected>All Notifications</option>
+                            <option value="unread">Unread Only</option>
+                            <option value="read">Read Only</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-category">Category:</label>
+                        <select id="filter-category">
+                            <option value="all" selected>All Categories</option>
+                            <option value="announcement">Announcements</option>
+                            <option value="billing">Billing</option>
+                            <option value="service">Service Requests</option>
+                            <option value="event">Events</option>
+                            <option value="system">System</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Notifications List -->
+                <div class="notifications-list">
+                    @if (Model.Notifications == null || !Model.Notifications.Any())
+                    {
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-bell-slash"></i>
+                            </div>
+                            <h3>No Notifications</h3>
+                            <p>You don't have any notifications at the moment.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        foreach (var notification in Model.Notifications)
+                        {
+                            string typeIconClass = notification.Type switch
+                            {
+                                "Announcement" => "fa-bullhorn",
+                                "Billing" => "fa-file-invoice-dollar",
+                                "Service" => "fa-tools",
+                                "Event" => "fa-calendar-alt",
+                                _ => "fa-info-circle"
+                            };
+
+                            string typeBgClass = notification.Type switch
+                            {
+                                "Announcement" => "announcement-bg",
+                                "Billing" => "billing-bg",
+                                "Service" => "service-bg",
+                                "Event" => "event-bg",
+                                _ => "system-bg"
+                            };
+
+                            <div class="notification-card @(notification.IsRead ? "read" : "unread")" data-id="@notification.Id" data-type="@notification.Type.ToLower()">
+                                <div class="notification-icon @typeBgClass">
+                                    <i class="fas @typeIconClass"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <h3>@notification.Title</h3>
+                                    <p>@notification.Message</p>
+                                    <div class="notification-meta">
+                                        <span class="notification-time">
+                                            <i class="far fa-clock"></i> @FormatTimeAgo(notification.CreatedAt)
+                                        </span>
+                                        <span class="notification-type">
+                                            <i class="fas fa-tag"></i> @notification.Type
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="notification-actions">
+                                    @if (!notification.IsRead)
+                                    {
+                                        <button class="mark-read-btn" data-id="@notification.Id">
+                                            <i class="far fa-check-circle"></i>
+                                        </button>
+                                    }
+                                    <button class="delete-btn" data-id="@notification.Id">
+                                        <i class="far fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+
+                <!-- Pagination -->
+                @if (Model.TotalPages > 1)
+                {
+                    <div class="pagination">
+                        @if (Model.CurrentPage > 1)
+                        {
+                            <a asp-action="Index" asp-route-page="@(Model.CurrentPage - 1)" class="prev">
+                                <i class="fas fa-chevron-left"></i> Previous
+                            </a>
+                        }
+
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            if (i == Model.CurrentPage)
+                            {
+                                <a class="active">@i</a>
+                            }
+                            else if (i <= 3 || i > Model.TotalPages - 3 || Math.Abs(i - Model.CurrentPage) <= 1)
+                            {
+                                <a asp-action="Index" asp-route-page="@i">@i</a>
+                            }
+                            else if (Math.Abs(i - Model.CurrentPage) == 2)
+                            {
+                                <span class="ellipsis">...</span>
+                                i = (i < Model.CurrentPage) ? Model.CurrentPage - 2 : Model.TotalPages - 3;
+                            }
+                        }
+
+                        @if (Model.CurrentPage < Model.TotalPages)
+                        {
+                            <a asp-action="Index" asp-route-page="@(Model.CurrentPage + 1)" class="next">
+                                Next <i class="fas fa-chevron-right"></i>
+                            </a>
+                        }
+                    </div>
+                }
+            </main>
+
+            <!-- Footer -->
+            <footer class="main-footer">
+                <div class="footer-content">
+                    <p>&copy; @DateTime.Now.Year Green Meadows Subdivision. All rights reserved.</p>
+                    <div class="footer-links">
+                        <a href="/Privacy">Privacy Policy</a>
+                        <a href="/Terms">Terms of Service</a>
+                        <a href="/Contact">Contact Us</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Hidden Forms for POST actions -->
+    <form id="mark-read-form" asp-action="MarkAsRead" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" id="mark-read-id" />
+    </form>
+
+    <form id="delete-form" asp-action="Delete" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" id="delete-id" />
+    </form>
+
+    <form id="mark-all-read-form" asp-action="MarkAllAsRead" method="post">
+        @Html.AntiForgeryToken()
+    </form>
+
+    <form id="delete-all-form" asp-action="DeleteAll" method="post">
+        @Html.AntiForgeryToken()
+    </form>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // User dropdown toggle
+            const userDropdown = document.querySelector('.user-dropdown');
+            if (userDropdown) {
+                userDropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const dropdownMenu = this.querySelector('.dropdown-menu');
+                    dropdownMenu.classList.toggle('show');
+
+                    // Close dropdown when clicking outside
+                    document.addEventListener('click', function closeUserDropdown(e) {
+                        if (!userDropdown.contains(e.target)) {
+                            dropdownMenu.classList.remove('show');
+                            document.removeEventListener('click', closeUserDropdown);
+                        }
+                    });
+                });
+            }
+
+            // Mobile sidebar toggle
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                });
+            }
+
+            // Close alert button
+            const closeButtons = document.querySelectorAll('.close-alert');
+            closeButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    var alert = this.parentElement;
+                    alert.style.display = 'none';
+                });
+            });
+
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function() {
+                var alerts = document.querySelectorAll('.alert');
+                alerts.forEach(function(alert) {
+                    alert.style.display = 'none';
+                });
+            }, 5000);
+
+            // Mark as read buttons
+            const markReadButtons = document.querySelectorAll('.mark-read-btn');
+            markReadButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    const notificationId = this.getAttribute('data-id');
+                    document.getElementById('mark-read-id').value = notificationId;
+                    document.getElementById('mark-read-form').submit();
+                });
+            });
+
+            // Delete buttons
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+            deleteButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    if (confirm('Are you sure you want to delete this notification?')) {
+                        const notificationId = this.getAttribute('data-id');
+                        document.getElementById('delete-id').value = notificationId;
+                        document.getElementById('delete-form').submit();
+                    }
+                });
+            });
+
+            // Mark all as read button
+            const markAllReadButton = document.getElementById('mark-all-read');
+            if (markAllReadButton) {
+                markAllReadButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (confirm('Mark all notifications as read?')) {
+                        document.getElementById('mark-all-read-form').submit();
+                    }
+                });
+            }
+
+            // Clear all button
+            const clearAllButton = document.getElementById('clear-all');
+            if (clearAllButton) {
+                clearAllButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (confirm('Are you sure you want to delete all notifications? This cannot be undone.')) {
+                        document.getElementById('delete-all-form').submit();
+                    }
+                });
+            }
+
+            // Filter controls
+            const filterType = document.getElementById('filter-type');
+            const filterCategory = document.getElementById('filter-category');
+
+            if (filterType && filterCategory) {
+                filterType.addEventListener('change', applyFilters);
+                filterCategory.addEventListener('change', applyFilters);
+            }
+
+            function applyFilters() {
+                const readStatus = filterType.value;
+                const category = filterCategory.value;
+
+                const notifications = document.querySelectorAll('.notification-card');
+                notifications.forEach(function(notification) {
+                    let show = true;
+
+                    // Check read status filter
+                    if (readStatus === 'unread' && notification.classList.contains('read')) {
+                        show = false;
+                    } else if (readStatus === 'read' && !notification.classList.contains('read')) {
+                        show = false;
+                    }
+
+                    // Check category filter
+                    if (category !== 'all' && notification.getAttribute('data-type') !== category) {
+                        show = false;
+                    }
+
+                    notification.style.display = show ? 'flex' : 'none';
+                });
+
+                // Show empty state if no notifications are visible
+                const visibleNotifications = document.querySelectorAll('.notification-card[style="display: flex;"]');
+                const emptyState = document.querySelector('.empty-state');
+
+                if (visibleNotifications.length === 0 && !emptyState) {
+                    const notificationsList = document.querySelector('.notifications-list');
+                    notificationsList.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-filter"></i>
+                            </div>
+                            <h3>No Matching Notifications</h3>
+                            <p>No notifications match your current filters.</p>
+                        </div>
+                    `;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+
+@functions {
+    string FormatTimeAgo(DateTime dateTime)
+    {
+        var timeSpan = DateTime.Now - dateTime;
+
+        if (timeSpan.TotalMinutes < 1)
+            return "just now";
+        if (timeSpan.TotalMinutes < 60)
+            return $"{(int)timeSpan.TotalMinutes} minute{((int)timeSpan.TotalMinutes == 1 ? "" : "s")} ago";
+        if (timeSpan.TotalHours < 24)
+            return $"{(int)timeSpan.TotalHours} hour{((int)timeSpan.TotalHours == 1 ? "" : "s")} ago";
+        if (timeSpan.TotalDays < 7)
+            return $"{(int)timeSpan.TotalDays} day{((int)timeSpan.TotalDays == 1 ? "" : "s")} ago";
+        if (timeSpan.TotalDays < 30)
+            return $"{(int)(timeSpan.TotalDays / 7)} week{((int)(timeSpan.TotalDays / 7) == 1 ? "" : "s")} ago";
+        if (timeSpan.TotalDays < 365)
+            return $"{(int)(timeSpan.TotalDays / 30)} month{((int)(timeSpan.TotalDays / 30) == 1 ? "" : "s")} ago";
+
+        return $"{(int)(timeSpan.TotalDays / 365)} year{((int)(timeSpan.TotalDays / 365) == 1 ? "" : "s")} ago";
+    }
+}

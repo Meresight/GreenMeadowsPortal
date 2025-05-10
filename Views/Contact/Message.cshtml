@@ -1,0 +1,261 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@model ContactMessageViewModel
+
+@{
+    ViewData["Title"] = "Send Message - Green Meadows Portal";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Meadows | Send Message</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/admin.css">
+    <link rel="stylesheet" href="~/css/contact.css">
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar Navigation -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Green Meadows</h3>
+                <div class="sidebar-logo">GM</div>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <img src="@Model.ProfileImageUrl" alt="User Avatar">
+                </div>
+                <div class="user-info">
+                    <h4>@Model.FirstName</h4>
+                    <p>@Model.Role</p>
+                </div>
+            </div>
+
+            <ul class="sidebar-menu">
+                @if (Model.Role == "Admin")
+                {
+                    <li><a asp-controller="Dashboard" asp-action="AdminDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a asp-controller="Dashboard" asp-action="UserManagement"><i class="fas fa-users"></i> User Management</a></li>
+                }
+                else if (Model.Role == "Staff")
+                {
+                    <li><a asp-controller="Dashboard" asp-action="StaffDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                }
+                else
+                {
+                    <li><a asp-controller="Dashboard" asp-action="HomeownerDashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+                }
+
+                <li><a asp-controller="Announcement" asp-action="Index"><i class="fas fa-bullhorn"></i> Announcements</a></li>
+                <li><a asp-controller="Dashboard" asp-action="Billing"><i class="fas fa-file-invoice-dollar"></i> Billing</a></li>
+                <li><a href="/Facilities"><i class="fas fa-swimming-pool"></i> Facilities</a></li>
+                <li><a href="/ServiceRequests"><i class="fas fa-tools"></i> Service Requests</a></li>
+                <li><a href="/Documents"><i class="fas fa-file-alt"></i> Documents</a></li>
+                <li><a href="/Forum"><i class="fas fa-comments"></i> Community Forum</a></li>
+                <li class="active"><a asp-controller="Contact" asp-action="Index"><i class="fas fa-address-book"></i> Contact Directory</a></li>
+                <li><a href="/Events"><i class="fas fa-calendar-alt"></i> Events</a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a asp-controller="Account" asp-action="Profile"><i class="fas fa-user-cog"></i> Profile</a>
+                <a asp-controller="Account" asp-action="Logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <!-- Top Navigation -->
+            <header class="top-navbar">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="back-button">
+                    <a asp-controller="Contact" asp-action="Index">
+                        <i class="fas fa-arrow-left"></i> Back to Contacts
+                    </a>
+                </div>
+
+                <div class="navbar-right">
+                    <div class="notification-bell">
+                        <a asp-controller="Notification" asp-action="Index">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-count">@Model.NotificationCount</span>
+                        </a>
+                    </div>
+                    <div class="inbox-icon">
+                        <a asp-controller="Contact" asp-action="Inbox">
+                            <i class="fas fa-envelope"></i>
+                            <span class="unread-messages" id="unread-message-count">0</span>
+                        </a>
+                    </div>
+                    <div class="user-dropdown">
+                        <img src="@Model.ProfileImageUrl" alt="User Avatar">
+                        <span>@Model.FirstName</span>
+                        <i class="fas fa-chevron-down"></i>
+
+                        <div class="dropdown-menu">
+                            <a asp-controller="Account" asp-action="Profile"><i class="fas fa-user"></i> My Profile</a>
+                            <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                            <a asp-controller="Account" asp-action="Logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="main-content">
+                <div class="page-header">
+                    <h1>Send Message</h1>
+                    <nav class="breadcrumb">
+                        <a asp-controller="Dashboard" asp-action="@(Model.Role == "Admin" ? "AdminDashboard" : (Model.Role == "Staff" ? "StaffDashboard" : "HomeownerDashboard"))">Dashboard</a> /
+                        <a asp-controller="Contact" asp-action="Index">Contact Directory</a> /
+                        Send Message
+                    </nav>
+                </div>
+
+                <!-- Success/Error Messages -->
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                        <button class="close-alert"><i class="fas fa-times"></i></button>
+                    </div>
+                }
+
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+                        <button class="close-alert"><i class="fas fa-times"></i></button>
+                    </div>
+                }
+
+                <!-- Message Form -->
+                <div class="message-container">
+                    <div class="recipient-info">
+                        <div class="recipient-avatar">
+                            <img src="@(string.IsNullOrEmpty(Model.ContactImageUrl) ? "/images/default-avatar.png" : Model.ContactImageUrl)" alt="Recipient Avatar">
+                        </div>
+                        <div class="recipient-details">
+                            <h3 class="recipient-name">
+                                @Model.ContactName
+                                @{
+                                    string badgeClass = Model.ContactRole switch
+                                    {
+                                        "Admin" => "admin",
+                                        "Staff" => "staff",
+                                        "Homeowner" => "homeowner",
+                                        _ => ""
+                                    };
+                                }
+                                <span class="recipient-role-badge @badgeClass">@Model.ContactRole</span>
+                            </h3>
+                            <div class="recipient-meta">
+                                @if (!string.IsNullOrEmpty(Model.ContactEmail))
+                                {
+                                    <p><i class="fas fa-envelope"></i> @Model.ContactEmail</p>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.ContactDepartment))
+                                {
+                                    <p><i class="fas fa-building"></i> @Model.ContactDepartment</p>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <form asp-controller="Contact" asp-action="SendMessage" method="post" class="message-form">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="ContactId" />
+
+                        <div class="form-group">
+                            <label asp-for="Subject">Subject</label>
+                            <input type="text" asp-for="Subject" class="form-control" placeholder="Enter message subject">
+                            <span asp-validation-for="Subject" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Message">Message</label>
+                            <textarea asp-for="Message" class="form-control" rows="6" placeholder="Type your message here..."></textarea>
+                            <span asp-validation-for="Message" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-buttons">
+                            <button type="submit" class="btn primary-btn">
+                                <i class="fas fa-paper-plane"></i> Send Message
+                            </button>
+                            <a asp-controller="Contact" asp-action="Index" class="btn secondary-btn">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="main-footer">
+                <div class="footer-content">
+                    <p>&copy; @DateTime.Now.Year Green Meadows Subdivision. All rights reserved.</p>
+                    <div class="footer-links">
+                        <a href="/Privacy">Privacy Policy</a>
+                        <a href="/Terms">Terms of Service</a>
+                        <a href="/Contact">Contact Us</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Mobile sidebar toggle
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                });
+            }
+
+            // User dropdown toggle
+            const userDropdown = document.querySelector('.user-dropdown');
+            if (userDropdown) {
+                userDropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    this.querySelector('.dropdown-menu').classList.toggle('show');
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (!userDropdown.contains(e.target)) {
+                        userDropdown.querySelector('.dropdown-menu').classList.remove('show');
+                    }
+                });
+            }
+
+            // Close alert message
+            const closeAlerts = document.querySelectorAll('.close-alert');
+            closeAlerts.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    this.closest('.alert').style.display = 'none';
+                });
+            });
+
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function() {
+                document.querySelectorAll('.alert').forEach(function(alert) {
+                    alert.style.display = 'none';
+                });
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

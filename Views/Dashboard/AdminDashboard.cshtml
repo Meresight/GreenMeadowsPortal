@@ -1,0 +1,639 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@model AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "Admin Dashboard - Green Meadows Portal";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Meadows | Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/admin.css">
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Include the shared sidebar -->
+        <partial name="_Sidebar" />
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <!-- Top Navigation -->
+            <header class="top-navbar">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="greeting">
+                    <h2>Welcome back, @Model.FirstName!</h2>
+                    <p>@DateTime.Now.ToString("dddd, MMMM dd, yyyy")</p>
+                </div>
+
+                <div class="navbar-right">
+                    <div class="notification-bell">
+                        <a asp-controller="Notification" asp-action="Index">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-count">@Model.NotificationCount</span>
+                        </a>
+                    </div>
+                    <div class="inbox-icon">
+                        <a asp-controller="Contact" asp-action="Inbox">
+                            <i class="fas fa-envelope"></i>
+                            <span class="unread-messages" id="unread-message-count">0</span>
+                        </a>
+                    </div>
+
+                    <div class="user-dropdown">
+                        <img src="@(string.IsNullOrEmpty(Model.ProfileImageUrl) ? "/images/default-avatar.png" : Model.ProfileImageUrl)" alt="Admin Avatar">
+                        <span>@Model.FirstName</span>
+                        <i class="fas fa-chevron-down"></i>
+
+                        <div class="dropdown-menu">
+                            <a asp-controller="Dashboard" asp-action="AdminProfile"><i class="fas fa-user-cog"></i> My Profile</a>
+                            <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                            <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i>Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="main-content">
+                <div class="page-header">
+                    <h1>Admin Dashboard</h1>
+                    <nav class="breadcrumb">
+                        <a asp-controller="Dashboard" asp-action="AdminDashboard">Admin</a> / Dashboard
+                    </nav>
+                </div>
+
+                <!-- Success Message (if available in TempData) -->
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                        <button class="close-alert"><i class="fas fa-times"></i></button>
+                    </div>
+                }
+
+                <!-- Admin Dashboard Overview -->
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <div class="stat-details">
+                            <h3>@Model.TotalUsers</h3>
+                            <p>Total Residents</p>
+                        </div>
+                        <div class="stat-footer">
+                            <a asp-controller="Dashboard" asp-action="UserManagement">Manage <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-tools"></i></div>
+                        <div class="stat-details">
+                            <h3>@Model.PendingRequests</h3>
+                            <p>Pending Requests</p>
+                        </div>
+                        <div class="stat-footer">
+                            <a asp-controller="ServiceRequests" asp-action="Index">View <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                        <div class="stat-details">
+                            <h3>₱@Model.OutstandingDues.ToString("N2")</h3>
+                            <p>Outstanding Dues</p>
+                        </div>
+                        <div class="stat-footer">
+                            <a asp-controller="Dashboard" asp-action="Billing">Details <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                        <div class="stat-details">
+                            <h3>@Model.UpcomingEvents</h3>
+                            <p>Upcoming Events</p>
+                        </div>
+                        <div class="stat-footer">
+                            <a href="/Events">Manage <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activities -->
+                <div class="content-section">
+                    <div class="section-header">
+                        <h2>Recent Activities</h2>
+                        <a href="/Admin/Activities" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+                    </div>
+
+                    <div class="activities-list">
+                        @if (Model.RecentActivities != null && Model.RecentActivities.Any())
+                        {
+                            foreach (var activity in Model.RecentActivities)
+                            {
+                                <div class="activity-item">
+                                    <div class="activity-icon"><i class="fas @activity.IconClass"></i></div>
+                                    <div class="activity-details">
+                                        <h4>@activity.ActivityType</h4>
+                                        <p>@activity.Description</p>
+                                        <span class="activity-time">@activity.Timestamp.ToString("MMM dd, yyyy h:mm tt")</span>
+                                    </div>
+                                    <div class="activity-actions">
+                                        <a href="@activity.ActionUrl" class="btn small-btn">View</a>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <!-- Sample activities when no data available -->
+                            <div class="activity-item">
+                                <div class="activity-icon"><i class="fas fa-user-plus"></i></div>
+                                <div class="activity-details">
+                                    <h4>New User Registration</h4>
+                                    <p>Maria Santos registered as a new homeowner.</p>
+                                    <span class="activity-time">Today, 10:45 AM</span>
+                                </div>
+                                <div class="activity-actions">
+                                    <a href="#" class="btn small-btn">Review</a>
+                                </div>
+                            </div>
+
+                            <div class="activity-item">
+                                <div class="activity-icon"><i class="fas fa-tools"></i></div>
+                                <div class="activity-details">
+                                    <h4>Service Request Updated</h4>
+                                    <p>Maintenance team updated status of #SR-2025-042 to "In Progress".</p>
+                                    <span class="activity-time">Today, 9:30 AM</span>
+                                </div>
+                                <div class="activity-actions">
+                                    <a href="#" class="btn small-btn">View</a>
+                                </div>
+                            </div>
+
+                            <div class="activity-item">
+                                <div class="activity-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                                <div class="activity-details">
+                                    <h4>Payment Received</h4>
+                                    <p>Ricardo Lim paid ₱2,500.00 for February 2025 dues.</p>
+                                    <span class="activity-time">Yesterday, 4:15 PM</span>
+                                </div>
+                                <div class="activity-actions">
+                                    <a href="#" class="btn small-btn">View</a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Content Row -->
+                <div class="content-row">
+                    <!-- Pending Service Requests -->
+                    <div class="content-section half">
+                        <div class="section-header">
+                            <h2>Pending Service Requests</h2>
+                            <a href="/ServiceRequests?status=pending" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+                        </div>
+
+                        <div class="service-requests-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Title</th>
+                                        <th>Resident</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>SR-043</td>
+                                        <td>Leaking Pipe in Unit 302</td>
+                                        <td>John Smith</td>
+                                        <td>Apr 28, 2025</td>
+                                        <td>
+                                            <a href="#" class="btn small-btn">View</a>
+                                            <a href="#" class="btn small-btn primary">Assign</a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>SR-042</td>
+                                        <td>Flickering Lights in Building B</td>
+                                        <td>Maria Garcia</td>
+                                        <td>Apr 27, 2025</td>
+                                        <td>
+                                            <a href="#" class="btn small-btn">View</a>
+                                            <a href="#" class="btn small-btn primary">Assign</a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>SR-041</td>
+                                        <td>Broken Gate at South Entrance</td>
+                                        <td>Ahmad Khan</td>
+                                        <td>Apr 26, 2025</td>
+                                        <td>
+                                            <a href="#" class="btn small-btn">View</a>
+                                            <a href="#" class="btn small-btn primary">Assign</a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- User Registration Requests -->
+                    <div class="content-section half">
+                        <div class="section-header">
+                            <h2>User Registration Requests</h2>
+                            <a asp-controller="Dashboard" asp-action="UserManagement" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+                        </div>
+
+                        <div class="user-requests-list">
+                            <div class="user-request-item">
+                                <div class="user-avatar">
+                                    <img src="/images/default-avatar.png" alt="User Avatar">
+                                </div>
+                                <div class="user-details">
+                                    <h4>Sophia Rodriguez</h4>
+                                    <p>Unit 501, Building C</p>
+                                    <span class="request-time">April 28, 2025, 2:15 PM</span>
+                                </div>
+                                <div class="request-actions">
+                                    <a href="#" class="btn small-btn">Review</a>
+                                    <a href="#" class="btn small-btn primary">Approve</a>
+                                    <a href="#" class="btn small-btn danger">Reject</a>
+                                </div>
+                            </div>
+
+                            <div class="user-request-item">
+                                <div class="user-avatar">
+                                    <img src="/images/default-avatar.png" alt="User Avatar">
+                                </div>
+                                <div class="user-details">
+                                    <h4>Michael Johnson</h4>
+                                    <p>Unit 205, Building A</p>
+                                    <span class="request-time">April 27, 2025, 10:30 AM</span>
+                                </div>
+                                <div class="request-actions">
+                                    <a href="#" class="btn small-btn">Review</a>
+                                    <a href="#" class="btn small-btn primary">Approve</a>
+                                    <a href="#" class="btn small-btn danger">Reject</a>
+                                </div>
+                            </div>
+
+                            <div class="user-request-item">
+                                <div class="user-avatar">
+                                    <img src="/images/default-avatar.png" alt="User Avatar">
+                                </div>
+                                <div class="user-details">
+                                    <h4>Emma Thompson</h4>
+                                    <p>Unit 403, Building D</p>
+                                    <span class="request-time">April 26, 2025, 3:45 PM</span>
+                                </div>
+                                <div class="request-actions">
+                                    <a href="#" class="btn small-btn">Review</a>
+                                    <a href="#" class="btn small-btn primary">Approve</a>
+                                    <a href="#" class="btn small-btn danger">Reject</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Section -->
+                <div class="content-section">
+                    <div class="section-header">
+                        <h2>Analytics Overview</h2>
+                        <a href="/Reports" class="view-all">View All Reports <i class="fas fa-arrow-right"></i></a>
+                    </div>
+
+                    <div class="analytics-grid">
+                        <div class="analytics-card">
+                            <h3>Payment Collection Rate</h3>
+                            <div class="analytics-chart">
+                                <div class="chart-container">
+                                    <div class="chart-bar" style="height: 85%;">
+                                        <span>85%</span>
+                                    </div>
+                                    <div class="chart-label">Jan</div>
+                                </div>
+                                <div class="chart-container">
+                                    <div class="chart-bar" style="height: 78%;">
+                                        <span>78%</span>
+                                    </div>
+                                    <div class="chart-label">Feb</div>
+                                </div>
+                                <div class="chart-container">
+                                    <div class="chart-bar" style="height: 65%;">
+                                        <span>65%</span>
+                                    </div>
+                                    <div class="chart-label">Mar</div>
+                                </div>
+                            </div>
+                            <p class="analytics-footer">
+                                <span class="analytics-trend negative">
+                                    <i class="fas fa-arrow-down"></i> 13% from last month
+                                </span>
+                                <a href="/Reports/Collections" class="view-report">View Full Report</a>
+                            </p>
+                        </div>
+
+                        <div class="analytics-card">
+                            <h3>Service Request Completion</h3>
+                            <div class="analytics-chart">
+                                <div class="chart-container">
+                                    <div class="chart-bar" style="height: 90%;">
+                                        <span>90%</span>
+                                    </div>
+                                    <div class="chart-label">Jan</div>
+                                </div>
+                                <div class="chart-container">
+                                    <div class="chart-bar" style="height: 95%;">
+                                        <span>95%</span>
+                                    </div>
+                                    <div class="chart-label">Feb</div>
+                                </div>
+                                <div class="chart-container">
+                                    <div class="chart-bar" style="height: 88%;">
+                                        <span>88%</span>
+                                    </div>
+                                    <div class="chart-label">Mar</div>
+                                </div>
+                            </div>
+                            <p class="analytics-footer">
+                                <span class="analytics-trend negative">
+                                    <i class="fas fa-arrow-down"></i> 7% from last month
+                                </span>
+                                <a href="/Reports/ServiceRequests" class="view-report">View Full Report</a>
+                            </p>
+                        </div>
+
+                        <div class="analytics-card">
+                            <h3>Facility Utilization</h3>
+                            <div class="analytics-chart">
+                                <div class="chart-container">
+                                    <div class="chart-bar" style="height: 65%;">
+                                        <span>65%</span>
+                                    </div>
+                                    <div class="chart-label">Jan</div>
+                                </div>
+                                <div class="chart-container">
+                                    <div class="chart-bar" style="height: 70%;">
+                                        <span>70%</span>
+                                    </div>
+                                    <div class="chart-label">Feb</div>
+                                </div>
+                                <div class="chart-container">
+                                    <div class="chart-bar" style="height: 75%;">
+                                        <span>75%</span>
+                                    </div>
+                                    <div class="chart-label">Mar</div>
+                                </div>
+                            </div>
+                            <p class="analytics-footer">
+                                <span class="analytics-trend positive">
+                                    <i class="fas fa-arrow-up"></i> 5% from last month
+                                </span>
+                                <a href="/Reports/Facilities" class="view-report">View Full Report</a>
+                            </p>
+                        </div>
+
+                        <div class="analytics-card">
+                            <h3>User Engagement</h3>
+                            <div class="analytics-chart">
+                                <div class="chart-container">
+                                    <div class="chart-bar" style="height: 45%;">
+                                        <span>45%</span>
+                                    </div>
+                                    <div class="chart-label">Jan</div>
+                                </div>
+                                <div class="chart-container">
+                                    <div class="chart-bar" style="height: 55%;">
+                                        <span>55%</span>
+                                    </div>
+                                    <div class="chart-label">Feb</div>
+                                </div>
+                                <div class="chart-container">
+                                    <div class="chart-bar" style="height: 60%;">
+                                        <span>60%</span>
+                                    </div>
+                                    <div class="chart-label">Mar</div>
+                                </div>
+                            </div>
+                            <p class="analytics-footer">
+                                <span class="analytics-trend positive">
+                                    <i class="fas fa-arrow-up"></i> 5% from last month
+                                </span>
+                                <a href="/Reports/Engagement" class="view-report">View Full Report</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="content-section">
+                    <div class="section-header">
+                        <h2>Quick Actions</h2>
+                    </div>
+
+                    <div class="quick-actions">
+                        <a asp-controller="Announcement" asp-action="Create" class="quick-action-card">
+                            <div class="quick-action-icon"><i class="fas fa-bullhorn"></i></div>
+                            <h4>Create Announcement</h4>
+                            <p>Post a new announcement to the community</p>
+                        </a>
+
+                        <a href="/Events/Create" class="quick-action-card">
+                            <div class="quick-action-icon"><i class="fas fa-calendar-plus"></i></div>
+                            <h4>Schedule Event</h4>
+                            <p>Add a new event to the community calendar</p>
+                        </a>
+
+                        <a href="/Billing/GenerateBills" class="quick-action-card">
+                            <div class="quick-action-icon"><i class="fas fa-file-invoice"></i></div>
+                            <h4>Generate Bills</h4>
+                            <p>Create and send monthly bills to residents</p>
+                        </a>
+
+                        <a href="/Reports/Generate" class="quick-action-card">
+                            <div class="quick-action-icon"><i class="fas fa-chart-pie"></i></div>
+                            <h4>Generate Reports</h4>
+                            <p>Create custom reports for management</p>
+                        </a>
+
+                        <a asp-controller="Dashboard" asp-action="UserManagement" class="quick-action-card">
+                            <div class="quick-action-icon"><i class="fas fa-user-plus"></i></div>
+                            <h4>Add New User</h4>
+                            <p>Manually add a new homeowner to the system</p>
+                        </a>
+
+                        <a asp-controller="ServiceRequests" asp-action="Index" class="quick-action-card">
+                            <div class="quick-action-icon"><i class="fas fa-tools"></i></div>
+                            <h4>Service Requests</h4>
+                            <p>View and manage maintenance and service requests</p>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Feedback Statistics -->
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-comment-dots"></i> Feedback Overview</h2>
+                        <a asp-controller="Feedback" asp-action="Index" class="btn btn-primary">View All</a>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-comment-dots"></i>
+                            </div>
+                            <div class="stat-details">
+                                <h3>@Model.TotalFeedbacks</h3>
+                                <p>Total Feedbacks</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                            <div class="stat-details">
+                                <h3>@Model.NewFeedbacks</h3>
+                                <p>New/Pending</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-details">
+                                <h3>@Model.ResolvedFeedbacks</h3>
+                                <p>Resolved</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (Model.RecentFeedbacks.Any())
+                    {
+                        <div class="recent-feedbacks">
+                            <h3>Recent Feedbacks</h3>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Subject</th>
+                                            <th>Type</th>
+                                            <th>Submitted By</th>
+                                            <th>Status</th>
+                                            <th>Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var feedback in Model.RecentFeedbacks)
+                                        {
+                                            <tr>
+                                                <td>FB-@feedback.Id</td>
+                                                <td>@feedback.Subject</td>
+                                                <td>@feedback.Type</td>
+                                                <td>
+                                                    <div class="user-info">
+                                                        <img src="@feedback.SubmittedByAvatar" alt="@feedback.SubmittedBy" class="user-avatar">
+                                                        <span>@feedback.SubmittedBy</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="status-badge @(feedback.Status == FeedbackStatus.New ? "status-new" : "status-resolved")">
+                                                        @feedback.Status
+                                                    </span>
+                                                </td>
+                                                <td>@feedback.SubmittedDate.ToString("MMM dd, yyyy")</td>
+                                                <td>
+                                                    <a asp-controller="Feedback" asp-action="Details" asp-route-id="@feedback.Id" class="btn btn-sm btn-primary">
+                                                        <i class="fas fa-eye"></i> View
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="main-footer">
+                <div class="footer-content">
+                    <p>&copy; @DateTime.Now.Year Green Meadows Subdivision. All rights reserved.</p>
+                    <div class="footer-links">
+                        <a href="/Help">Help Center</a>
+                        <a href="/Privacy">Privacy Policy</a>
+                        <a href="/Terms">Terms of Service</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // User dropdown toggle
+            const userDropdown = document.querySelector('.user-dropdown');
+            if (userDropdown) {
+                userDropdown.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    this.classList.toggle('open');
+                    const dropdownMenu = this.querySelector('.dropdown-menu');
+                    dropdownMenu.classList.toggle('show');
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!userDropdown.contains(event.target)) {
+                        userDropdown.classList.remove('open');
+                        const dropdownMenu = userDropdown.querySelector('.dropdown-menu');
+                        if (dropdownMenu) dropdownMenu.classList.remove('show');
+                    }
+                });
+            }
+
+            // Mobile sidebar toggle
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                });
+            }
+
+            // Close alert buttons
+            const closeButtons = document.querySelectorAll('.close-alert');
+            closeButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    var alert = this.parentElement;
+                    alert.style.display = 'none';
+                });
+            });
+
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function() {
+                var alerts = document.querySelectorAll('.alert');
+                alerts.forEach(function(alert) {
+                    alert.style.display = 'none';
+                });
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

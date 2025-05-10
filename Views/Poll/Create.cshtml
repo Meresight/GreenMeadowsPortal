@@ -1,0 +1,81 @@
+﻿@* Views/Poll/Create.cshtml *@
+@model GreenMeadowsPortal.ViewModels.PollCreateViewModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Create Poll";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+}
+
+<div class="page-header">
+    <h1>Create Poll</h1>
+    <nav class="breadcrumb">
+        <a asp-controller="Dashboard" asp-action="AdminDashboard">Admin</a> /
+        <a asp-controller="Poll" asp-action="Index">Polls & Surveys</a> /
+        Create
+    </nav>
+</div>
+
+<div class="content-section">
+    <div class="section-header">
+        <h2>New Poll</h2>
+    </div>
+
+    <form asp-controller="Poll" asp-action="Create" method="post" class="poll-form">
+        <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+        <div class="form-group">
+            <label asp-for="Question" class="form-label">Question</label>
+            <input asp-for="Question" class="form-control" placeholder="Enter the yes/no question" />
+            <span asp-validation-for="Question" class="text-danger"></span>
+            <small class="form-text text-muted">Keep the question clear and concise. It should be answerable with Yes or No.</small>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Description" class="form-label">Description (Optional)</label>
+            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Add context or additional information about the poll"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="ExpirationDate" class="form-label">Expiration Date (Optional)</label>
+            <input asp-for="ExpirationDate" type="datetime-local" class="form-control" />
+            <span asp-validation-for="ExpirationDate" class="text-danger"></span>
+            <small class="form-text text-muted">If not specified, the poll will remain active until manually closed.</small>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="TargetAudience" class="form-label">Target Audience</label>
+            <select asp-for="TargetAudience" class="form-control">
+                <option value="All">All Users</option>
+                <option value="Homeowners">Homeowners Only</option>
+                <option value="Staff">Staff Only</option>
+            </select>
+            <span asp-validation-for="TargetAudience" class="text-danger"></span>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn primary-btn">Create Poll</button>
+            <a asp-controller="Poll" asp-action="Index" class="btn">Cancel</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Set minimum datetime for expiration date to now
+        document.addEventListener('DOMContentLoaded', function() {
+            var now = new Date();
+            var year = now.getFullYear();
+            var month = (now.getMonth() + 1).toString().padStart(2, '0');
+            var day = now.getDate().toString().padStart(2, '0');
+            var hours = now.getHours().toString().padStart(2, '0');
+            var minutes = now.getMinutes().toString().padStart(2, '0');
+
+            var minDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+            document.getElementById('ExpirationDate').min = minDateTime;
+        });
+    </script>
+}

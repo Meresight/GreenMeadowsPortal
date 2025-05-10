@@ -1,0 +1,401 @@
+﻿    @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+    @using GreenMeadowsPortal.ViewModels
+    @model HomeownerDashboardViewModel
+    @using GreenMeadowsPortal.Models
+
+    @{
+        ViewData["Title"] = "Homeowner Dashboard - Green Meadows Portal";
+        Layout = null;
+    }
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Green Meadows | Homeowner Dashboard</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="~/css/admin.css">
+        <link rel="stylesheet" href="~/css/homeowner.css">
+    </head>
+    <body>
+        <div class="wrapper">
+            <!-- Sidebar Navigation -->
+            <nav id="sidebar" class="sidebar">
+                <div class="sidebar-header">
+                    <h3>Green Meadows</h3>
+                    <div class="sidebar-logo">GM</div>
+                </div>
+
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        <img src="@(string.IsNullOrEmpty(Model.ProfileImageUrl) ? "/images/default-avatar.png" : Model.ProfileImageUrl)" alt="User Avatar">
+                    </div>
+                    <div class="user-info">
+                        <h4>@Model.FirstName</h4>
+                        <p>@Model.Role</p>
+                    </div>
+                </div>
+
+                <ul class="sidebar-menu">
+                    <li class="active">
+                        <a asp-controller="Dashboard" asp-action="HomeownerDashboard"><i class="fas fa-home"></i> Dashboard</a>
+                    </li>
+                    <li>
+                        <a asp-controller="Announcement" asp-action="Index"><i class="fas fa-bullhorn"></i> Announcements</a>
+                    </li>
+                    <li>
+                        <a asp-controller="Dashboard" asp-action="Billing"><i class="fas fa-file-invoice-dollar"></i> Billing & Payments</a>
+                    </li>
+                    <li>
+                        <a href="/ServiceRequests"><i class="fas fa-tools"></i> Service Requests</a>
+                    </li>
+                    <li>
+                        <a href="/Facilities"><i class="fas fa-swimming-pool"></i> Facilities</a>
+                    </li>
+                <li>
+                    <a asp-controller="Document" asp-action="Index"><i class="fas fa-file-alt"></i> Documents</a>
+                </li>
+                    <li>
+                        <a href="/Forum"><i class="fas fa-comments"></i> Community Forum</a>
+                    </li>
+                    <li>
+                        <a href="/Events"><i class="fas fa-calendar-alt"></i> Events</a>
+                    </li>
+                    <li>
+                        <a href="/Feedback"><i class="fas fa-comment-dots"></i> Feedback</a>
+                    </li>
+                <li>
+                    <a asp-controller="Poll" asp-action="Index"><i class="fas fa-poll"></i> Polls</a>
+                </li>
+                <li>
+                    <a asp-controller="Contact" asp-action="Index"><i class="fas fa-address-book"></i> Contacts</a>
+                </li>
+                </ul>
+
+                <div class="sidebar-footer">
+                    <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i>Logout</a>
+            </div>
+            </nav>
+
+            <!-- Main Content -->
+            <div class="content-area">
+                <!-- Top Navigation -->
+                <header class="top-navbar">
+                    <button id="sidebar-toggle" class="sidebar-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+
+                    <div class="greeting">
+                        <h2>Welcome back, @Model.FirstName!</h2>
+                        <p>@DateTime.Now.ToString("dddd, MMMM dd, yyyy")</p>
+                    </div>
+
+                    <div class="navbar-right">
+                        <div class="notification-bell">
+                            <a asp-controller="Notification" asp-action="Index">
+                                <i class="fas fa-bell"></i>
+                                <span class="notification-count">@Model.NotificationCount</span>
+                            </a>
+                        </div>
+                    <div class="inbox-icon">
+                        <a asp-controller="Contact" asp-action="Inbox">
+                            <i class="fas fa-envelope"></i>
+                            <span class="unread-messages" id="unread-message-count">0</span>
+                        </a>
+                    </div>
+                        <div class="user-dropdown">
+                            <img src="@(string.IsNullOrEmpty(Model.ProfileImageUrl) ? "/images/default-avatar.png" : Model.ProfileImageUrl)" alt="User Avatar">
+                            <span>@Model.FirstName</span>
+                            <i class="fas fa-chevron-down"></i>
+
+                            <div class="dropdown-menu">
+                                <a asp-controller="Account" asp-action="Profile"><i class="fas fa-user"></i> My Profile</a>
+                                <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                            <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i>Logout</a>
+                        </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Page Content -->
+                <main class="main-content">
+                    <!-- Success Message (if available in TempData) -->
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                            <button class="close-alert"><i class="fas fa-times"></i></button>
+                        </div>
+                    }
+
+                    <!-- Dashboard Overview Cards -->
+                    <div class="dashboard-stats">
+                        <div class="stat-card payment-card @(Model.HasOverduePayments ? "overdue-card" : "")">
+                            <div class="stat-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                            <div class="stat-details">
+                                <h3>₱@Model.TotalDue.ToString("N2")</h3>
+                                <p>@(Model.HasOverduePayments ? "Overdue Payment" : "Current Balance")</p>
+                                @if (Model.DaysUntilDue > 0 && !Model.HasOverduePayments)
+                                {
+                                    <span class="due-date">Due in @Model.DaysUntilDue days</span>
+                                }
+                                else if (Model.HasOverduePayments)
+                                {
+                                    <span class="due-date overdue">Overdue</span>
+                                }
+                                else
+                                {
+                                    <span class="due-date">Due today</span>
+                                }
+                            </div>
+                            <div class="stat-footer">
+                                <a asp-controller="Dashboard" asp-action="Billing">Pay Now <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-tools"></i></div>
+                        <div class="stat-details">
+                            <h3>@Model.PendingRequests</h3>
+                            <p>Active Service Requests</p>
+                        </div>
+                        <div class="stat-footer">
+                            <a asp-controller="ServiceRequests" asp-action="Index">View <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
+                            <div class="stat-details">
+                                <h3>@Model.UpcomingEventsCount</h3>
+                                <p>Upcoming Events</p>
+                            </div>
+                            <div class="stat-footer">
+                                <a href="/Events">View <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-home"></i></div>
+                            <div class="stat-details">
+                                <h3>@Model.TotalPropertiesOwned</h3>
+                                <p>@(Model.TotalPropertiesOwned == 1 ? "Property Owned" : "Properties Owned")</p>
+                            </div>
+                            <div class="stat-footer">
+                                <a href="/Properties">Manage <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Content Sections -->
+                    <div class="content-row">
+                        <!-- Recent Announcements -->
+                        <div class="content-section half">
+                            <div class="section-header">
+                                <h2>Recent Announcements</h2>
+                                <a asp-controller="Announcement" asp-action="Index" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+                            </div>
+
+                            <div class="announcements-list">
+                                @if (Model.RecentAnnouncements != null && Model.RecentAnnouncements.Any())
+                                {
+                                    foreach (var announcement in Model.RecentAnnouncements)
+                                    {
+                                        string priorityClass = announcement.Priority switch
+                                        {
+                                            AnnouncementPriority.Urgent => "tag urgent",
+                                            AnnouncementPriority.Important => "tag important",
+                                            _ => "tag general"
+                                        };
+
+                                        string priorityText = announcement.Priority switch
+                                        {
+                                            AnnouncementPriority.Urgent => "Urgent",
+                                            AnnouncementPriority.Important => "Important",
+                                            _ => "General"
+                                        };
+
+                                        <div class="announcement-card">
+                                            <div class="announcement-header">
+                                                <span class="@priorityClass">@priorityText</span>
+                                                <span class="date">@(announcement.PublishDate?.ToString("MMM dd, yyyy") ?? announcement.CreatedDate.ToString("MMM dd, yyyy"))</span>
+                                            </div>
+                                            <h3>@announcement.Title</h3>
+                                        <p>@Html.Raw(announcement.Content.Length > 100 ? announcement.Content.Substring(0, 100) + "..." : announcement.Content)</p>                                            <div class="announcement-footer">
+                                                <a asp-controller="Announcement" asp-action="Details" asp-route-id="@announcement.Id" class="read-more">Read More</a>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="empty-state">
+                                        <div class="empty-icon">
+                                            <i class="fas fa-bullhorn"></i>
+                                        </div>
+                                        <h3>No Recent Announcements</h3>
+                                        <p>There are no recent announcements to display.</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Upcoming Events -->
+                        <div class="content-section half">
+                            <div class="section-header">
+                                <h2>Upcoming Events</h2>
+                                <a href="/Events" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+                            </div>
+
+                            <div class="events-list">
+                                @if (Model.UpcomingEvents != null && Model.UpcomingEvents.Any())
+                                {
+                                    foreach (var evt in Model.UpcomingEvents)
+                                    {
+                                        <div class="event-card">
+                                            <div class="event-date">
+                                                <div class="event-month">@evt.EventDate.ToString("MMM")</div>
+                                                <div class="event-day">@evt.EventDate.Day</div>
+                                            </div>
+                                            <div class="event-details">
+                                                <h3>@evt.Title</h3>
+                                                <div class="event-info">
+                                                    <span><i class="fas fa-map-marker-alt"></i> @evt.Location</span>
+                                                    <span><i class="fas fa-clock"></i> @evt.EventDate.ToString("h:mm tt")</span>
+                                                    <span><i class="fas fa-tag"></i> @evt.EventType</span>
+                                                </div>
+                                            </div>
+                                            <div class="event-actions">
+                                                <a href="/Events/Details/@evt.Id" class="btn small-btn">View</a>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="empty-state">
+                                        <div class="empty-icon">
+                                            <i class="fas fa-calendar-day"></i>
+                                        </div>
+                                        <h3>No Upcoming Events</h3>
+                                        <p>There are no upcoming events to display.</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="content-section">
+                        <div class="section-header">
+                            <h2>Quick Actions</h2>
+                        </div>
+
+                        <div class="quick-actions">
+                        <a asp-controller="ServiceRequests" asp-action="Create" class="quick-action-card">
+                            <div class="quick-action-icon"><i class="fas fa-tools"></i></div>
+                            <h4>Request Service</h4>
+                            <p>Report an issue or request maintenance</p>
+                        </a>
+
+                            <a asp-controller="Dashboard" asp-action="Billing" class="quick-action-card">
+                                <div class="quick-action-icon"><i class="fas fa-credit-card"></i></div>
+                                <h4>Make a Payment</h4>
+                                <p>Pay your association dues or fees</p>
+                            </a>
+
+                            <a href="/Facilities/Reserve" class="quick-action-card">
+                                <div class="quick-action-icon"><i class="fas fa-swimming-pool"></i></div>
+                                <h4>Reserve Facility</h4>
+                                <p>Book a common area or amenity</p>
+                            </a>
+
+                            <a href="/Documents/Upload" class="quick-action-card">
+                                <div class="quick-action-icon"><i class="fas fa-file-upload"></i></div>
+                                <h4>Upload Document</h4>
+                                <p>Submit documents to management</p>
+                            </a>
+
+                            <a href="/Feedback/Submit" class="quick-action-card">
+                                <div class="quick-action-icon"><i class="fas fa-comment-alt"></i></div>
+                                <h4>Submit Feedback</h4>
+                                <p>Share your ideas or concerns</p>
+                            </a>
+
+                            <a href="/Contacts" class="quick-action-card">
+                                <div class="quick-action-icon"><i class="fas fa-address-book"></i></div>
+                                <h4>Contact Directory</h4>
+                                <p>Find important contact information</p>
+                            </a>
+                        </div>
+                    </div>
+                </main>
+
+                <!-- Footer -->
+                <footer class="main-footer">
+                    <div class="footer-content">
+                        <p>&copy; @DateTime.Now.Year Green Meadows Subdivision. All rights reserved.</p>
+                        <div class="footer-links">
+                            <a href="/Help">Help Center</a>
+                            <a href="/Privacy">Privacy Policy</a>
+                            <a href="/Terms">Terms of Service</a>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </div>
+
+        <script>
+           document.addEventListener('DOMContentLoaded', function() {
+            // User dropdown toggle
+            const userDropdown = document.querySelector('.user-dropdown');
+            if (userDropdown) {
+                userDropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const dropdownMenu = this.querySelector('.dropdown-menu');
+                    dropdownMenu.classList.toggle('show');
+
+                    // Close dropdown when clicking outside
+                    document.addEventListener('click', function closeUserDropdown(e) {
+                        if (!userDropdown.contains(e.target)) {
+                            dropdownMenu.classList.remove('show');
+                            document.removeEventListener('click', closeUserDropdown);
+                        }
+                    });
+                });
+            }
+
+            // Mobile sidebar toggle
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                });
+            }
+
+            // Close alert button
+            const closeButtons = document.querySelectorAll('.close-alert');
+            closeButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    var alert = this.parentElement;
+                    alert.style.display = 'none';
+                });
+            });
+
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function() {
+                var alerts = document.querySelectorAll('.alert');
+                alerts.forEach(function(alert) {
+                    alert.style.display = 'none';
+                });
+            }, 5000);
+        });
+        </script>
+    </body>
+    </html>

@@ -1,0 +1,359 @@
+﻿@model GreenMeadowsPortal.ViewModels.FeedbackListViewModel
+@{
+    ViewData["Title"] = "Feedback & Complaints";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/feedback.css">
+}
+
+<div class="page-header">
+    <div>
+        <h1>Feedback & Complaints</h1>
+        <nav class="breadcrumb">
+            @if (Model.Role == "Admin")
+            {
+                <a asp-controller="Dashboard" asp-action="AdminDashboard">Admin Dashboard</a>
+            }
+            else if (Model.Role == "Staff")
+            {
+                <a asp-controller="Dashboard" asp-action="StaffDashboard">Staff Dashboard</a>
+            }
+            else
+            {
+                <a asp-controller="Dashboard" asp-action="HomeownerDashboard">Homeowner Dashboard</a>
+            }
+            <span> / Feedback</span>
+        </nav>
+    </div>
+    <div>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Submit Feedback
+        </a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+        <button class="close-alert"><i class="fas fa-times"></i></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-error">
+        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+        <button class="close-alert"><i class="fas fa-times"></i></button>
+    </div>
+}
+
+<!-- Feedback Statistics (Admin/Staff only) -->
+@if (Model.Role == "Admin" || Model.Role == "Staff")
+{
+    <div class="feedback-stats">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-comment-dots"></i>
+            </div>
+            <div class="stat-details">
+                <h3>@Model.TotalSubmissions</h3>
+                <p>Total Submissions</p>
+            </div>
+            <div class="stat-footer">
+                <a asp-action="Index" asp-route-statusFilter="all">View All <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <div class="stat-details">
+                <h3>@Model.NewCount</h3>
+                <p>New/Pending</p>
+            </div>
+            <div class="stat-footer">
+                <a asp-action="Index" asp-route-statusFilter="New">View New <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-details">
+                <h3>@Model.ResolvedCount</h3>
+                <p>Resolved</p>
+            </div>
+            <div class="stat-footer">
+                <a asp-action="Index" asp-route-statusFilter="Resolved">View Resolved <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+
+        @if (Model.Role == "Admin")
+        {
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div class="stat-details">
+                    <h3>Dashboard</h3>
+                    <p>Analytics</p>
+                </div>
+                <div class="stat-footer">
+                    <a asp-action="Dashboard">View Dashboard <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+    <form asp-action="Index" method="get" class="w-100 d-flex flex-wrap gap-3 align-items-center">
+        <div class="filter-group">
+            <label for="statusFilter">Status:</label>
+            <select id="statusFilter" name="statusFilter" asp-for="StatusFilter">
+                <option value="all">All Status</option>
+                <option value="New">New</option>
+                <option value="Resolved">Resolved</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="typeFilter">Type:</label>
+            <select id="typeFilter" name="typeFilter" asp-for="TypeFilter">
+                <option value="all">All Types</option>
+                <option value="Suggestion">Suggestion</option>
+                <option value="Complaint">Complaint</option>
+                <option value="General">General</option>
+            </select>
+        </div>
+
+        <div class="search-group">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" name="searchQuery" value="@Model.SearchQuery" placeholder="Search feedback..." class="form-control">
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-search"></i> Search
+        </button>
+    </form>
+</div>
+
+<!-- Feedback List -->
+<div class="feedback-list">
+    @if (Model.Submissions.Any())
+    {
+        <table class="feedback-table">
+            <thead>
+                <tr>
+                    @if (Model.Role == "Admin" || Model.Role == "Staff")
+                    {
+                        <th>ID</th>
+                    }
+                    <th>Subject</th>
+                    <th>Type</th>
+                    @if (Model.Role == "Admin" || Model.Role == "Staff")
+                    {
+                        <th>Submitted By</th>
+                    }
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var submission in Model.Submissions)
+                {
+                    <tr>
+                        @if (Model.Role == "Admin" || Model.Role == "Staff")
+                        {
+                            <td>FB-@submission.Id</td>
+                        }
+                        <td>
+                            <a asp-action="Details" asp-route-id="@submission.Id" class="text-dark text-decoration-none">
+                                @submission.Subject
+                            </a>
+                        </td>
+                        <td>
+                            <span class="type-badge">@submission.Type</span>
+                        </td>
+                        @if (Model.Role == "Admin" || Model.Role == "Staff")
+                        {
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="@submission.SubmittedByAvatar" alt="@submission.SubmittedBy" class="rounded" style="width: 30px; height: 30px;">
+                                    @submission.SubmittedBy
+                                </div>
+                            </td>
+                        }
+                        <td>
+                            <span class="priority-indicator priority-@submission.Priority.ToString().ToLower()"></span>
+                            @submission.Priority
+                        </td>
+                        <td>
+                            <span class="status-badge @submission.StatusColor">@submission.StatusText</span>
+                        </td>
+                        <td>@submission.SubmittedDate.ToString("MMM dd, yyyy")</td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a asp-action="Details" asp-route-id="@submission.Id" class="btn btn-sm" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                @if (submission.CanRespond && submission.Status == FeedbackStatus.New)
+                                {
+                                    <a href="#" class="btn btn-sm btn-primary"
+                                       data-bs-toggle="modal" data-bs-target="#resolveModal"
+                                       data-feedback-id="@submission.Id"
+                                       data-feedback-subject="@submission.Subject"
+                                       title="Resolve">
+                                        <i class="fas fa-check"></i>
+                                    </a>
+                                }
+                                @if (submission.CanDelete)
+                                {
+                                    <form asp-action="Delete" asp-route-id="@submission.Id" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this feedback?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Delete">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-comment-slash"></i>
+            </div>
+            <h3>No Feedback Found</h3>
+            <p>@(string.IsNullOrEmpty(Model.SearchQuery) ? "There are no feedback submissions yet." : "No feedback found matching your search criteria.")</p>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Submit Your First Feedback
+            </a>
+        </div>
+    }
+</div>
+
+<!-- Pagination -->
+@if (Model.TotalPages > 1)
+{
+    <div class="pagination">
+        @if (Model.CurrentPage > 1)
+        {
+            <a asp-action="Index"
+               asp-route-statusFilter="@Model.StatusFilter"
+               asp-route-typeFilter="@Model.TypeFilter"
+               asp-route-searchQuery="@Model.SearchQuery"
+               asp-route-page="@(Model.CurrentPage - 1)">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+        }
+
+        @for (int i = 1; i <= Model.TotalPages; i++)
+        {
+            if (i == Model.CurrentPage)
+            {
+                <span class="active">@i</span>
+            }
+            else
+            {
+                <a asp-action="Index"
+                   asp-route-statusFilter="@Model.StatusFilter"
+                   asp-route-typeFilter="@Model.TypeFilter"
+                   asp-route-searchQuery="@Model.SearchQuery"
+                   asp-route-page="@i">@i</a>
+            }
+        }
+
+        @if (Model.CurrentPage < Model.TotalPages)
+        {
+            <a asp-action="Index"
+               asp-route-statusFilter="@Model.StatusFilter"
+               asp-route-typeFilter="@Model.TypeFilter"
+               asp-route-searchQuery="@Model.SearchQuery"
+               asp-route-page="@(Model.CurrentPage + 1)">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        }
+    </div>
+}
+
+<!-- Quick Resolve Modal -->
+<div class="modal fade" id="resolveModal" tabindex="-1" aria-labelledby="resolveModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resolveModalLabel">Resolve Feedback</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="resolveForm" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <input type="hidden" id="feedbackId" name="id">
+                    <p id="feedbackSubject" class="mb-3"></p>
+                    <div class="form-group">
+                        <label for="adminResponse">Response:</label>
+                        <textarea class="form-control" id="adminResponse" name="adminResponse" rows="4" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check"></i> Resolve Feedback
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle quick resolve modal
+            const resolveModal = document.getElementById('resolveModal');
+            if (resolveModal) {
+                resolveModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    const feedbackId = button.getAttribute('data-feedback-id');
+                    const feedbackSubject = button.getAttribute('data-feedback-subject');
+
+                    const form = document.getElementById('resolveForm');
+                    const feedbackIdInput = document.getElementById('feedbackId');
+                    const feedbackSubjectP = document.getElementById('feedbackSubject');
+
+                    form.action = '/Feedback/Resolve/' + feedbackId;
+                    feedbackIdInput.value = feedbackId;
+                    feedbackSubjectP.textContent = 'Subject: ' + feedbackSubject;
+                });
+            }
+
+            // Auto-hide alerts
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                const closeBtn = alert.querySelector('.close-alert');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function() {
+                        alert.style.display = 'none';
+                    });
+                }
+
+                setTimeout(function() {
+                    alert.style.display = 'none';
+                }, 5000);
+            });
+        });
+    </script>
+}

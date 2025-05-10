@@ -1,0 +1,99 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@model LoginViewModel
+
+@{
+    ViewData["Title"] = "Login - Green Meadows Portal";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Meadows | Login</title>
+
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="landing-page">
+        <!-- Left Side: Branding Section -->
+        <div class="landing-left">
+            <div class="landing-content">
+                <div class="landing-logo">
+                    <div class="logo-icon">GM</div>
+                    <span>Green Meadows</span>
+                </div>
+                <h1 class="landing-title">Welcome Back</h1>
+                <p class="landing-subtitle">Sign in to access your Green Meadows community portal.</p>
+            </div>
+        </div>
+
+        <!-- Right Side: Login Form -->
+        <div class="landing-right">
+            <div class="registration-form">
+                <div class="login-header">
+                    <h2>Sign In</h2>
+                    <p>Access your Green Meadows community account</p>
+                </div>
+
+                <!-- Display Validation Summary -->
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <form asp-action="Login" asp-controller="Account" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Email Input -->
+                    <div class="form-group">
+                        <label asp-for="Email" class="form-label">Email</label>
+                        <div class="input-group">
+                            <span class="input-icon"><i class="fas fa-envelope"></i></span>
+                            <input asp-for="Email" class="form-control" placeholder="Enter your email" required>
+                        </div>
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <!-- Password Input -->
+                    <div class="form-group">
+                        <label asp-for="Password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <span class="input-icon"><i class="fas fa-lock"></i></span>
+                            <input asp-for="Password" type="password" class="form-control" placeholder="Enter password" required>
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <!-- Remember Me -->
+                    <div class="form-group form-check">
+                        <input asp-for="RememberMe" type="checkbox" class="form-check-input">
+                        <label asp-for="RememberMe" class="form-check-label">Remember me</label>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary">Sign In</button>
+                </form>
+
+                <!-- Footer -->
+                <div class="login-footer">
+                    <p>Don't have an account? <a asp-action="Register" asp-controller="Account">Register</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery & Validation Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+</body>
+</html>

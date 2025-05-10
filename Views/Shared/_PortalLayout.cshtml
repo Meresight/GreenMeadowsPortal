@@ -1,0 +1,239 @@
+﻿@* Views/Shared/_PortalLayout.cshtml *@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Microsoft.AspNetCore.Identity
+@using GreenMeadowsPortal.Models
+@using GreenMeadowsPortal.Services
+@inject UserManager<ApplicationUser> UserManager
+@inject INotificationService NotificationService
+@inject GreenMeadowsPortal.Data.AppDbContext DbContext
+
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var userName = user?.FirstName ?? "User";
+    var userRole = "";
+    var profileImage = user?.ProfileImageUrl ?? "/images/default-avatar.png";
+    int notificationCount = 0;
+
+    // Get the current controller and action
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+
+    if (user != null)
+    {
+        var roles = await UserManager.GetRolesAsync(user);
+        userRole = roles.FirstOrDefault() ?? "User";
+        notificationCount = await NotificationService.GetUnreadCountAsync(user.Id);
+    }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Meadows | @ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/admin.css">
+
+    @if (currentController == "Document")
+    {
+        <link rel="stylesheet" href="~/css/documents.css">
+    }
+    else if (currentController == "Notification")
+    {
+        <link rel="stylesheet" href="~/css/notifications.css">
+    }
+    else if (currentController == "Contact")
+    {
+        <link rel="stylesheet" href="~/css/contact.css">
+    }
+    else if (currentController == "Poll")
+    {
+        <link rel="stylesheet" href="~/css/polls.css">
+    }
+    else if (currentController == "Forum")
+    {
+        <link rel="stylesheet" href="~/css/forum.css">
+    }
+    else if (currentController == "Feedback")
+    {
+        <link rel="stylesheet" href="~/css/feedback.css">
+    }
+    else
+    {
+        var role = User.IsInRole("Admin") ? "admin" :
+        (User.IsInRole("Staff") ? "staff" : "homeowner");
+        <link rel="stylesheet" href="~/css/@(role).css">
+    }
+
+    @RenderSection("Styles", required: false)
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar Navigation -->
+        <partial name="_Sidebar" />
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <!-- Top Navigation -->
+            <header class="top-navbar">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                @{
+                    var isDashboard = currentController == "Dashboard" && currentAction?.Contains("Dashboard") == true;
+                }
+
+                @if (!isDashboard)
+                {
+                    <div class="back-button">
+                        <a asp-controller="Dashboard" asp-action="@(userRole == "Admin" ? "AdminDashboard" : (userRole == "Staff" ? "StaffDashboard" : "HomeownerDashboard"))">
+                            <i class="fas fa-arrow-left"></i> Back to Dashboard
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="greeting">
+                        <h2>Welcome back, @userName!</h2>
+                        <p>@DateTime.Now.ToString("dddd, MMMM dd, yyyy")</p>
+                    </div>
+                }
+
+                <div class="navbar-right">
+                    <div class="notification-bell @(currentController == "Notification" ? "active" : "")">
+                        <a asp-controller="Notification" asp-action="Index">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-count">@notificationCount</span>
+                        </a>
+                    </div>
+                    <div class="inbox-icon @(currentController == "Contact" && currentAction == "Inbox" ? "active" : "")">
+                        <a asp-controller="Contact" asp-action="Inbox">
+                            <i class="fas fa-envelope"></i>
+                            <span class="unread-messages" id="unread-message-count">0</span>
+                        </a>
+                    </div>
+
+                    <div class="user-dropdown">
+                        <img src="@profileImage" alt="User Avatar">
+                        <span>@userName</span>
+                        <i class="fas fa-chevron-down"></i>
+
+                        <div class="dropdown-menu">
+                            <a asp-controller="Dashboard" asp-action="Profile"><i class="fas fa-user"></i> My Profile</a>
+                            <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                            <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="main-content">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                        <button class="close-alert"><i class="fas fa-times"></i></button>
+                    </div>
+                }
+
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+                        <button class="close-alert"><i class="fas fa-times"></i></button>
+                    </div>
+                }
+
+                @RenderBody()
+            </main>
+
+            <!-- Footer -->
+            <footer class="main-footer">
+                <div class="footer-content">
+                    <p>&copy; @DateTime.Now.Year Green Meadows Subdivision. All rights reserved.</p>
+                    <div class="footer-links">
+                        <a href="/Privacy">Privacy Policy</a>
+                        <a href="/Terms">Terms of Service</a>
+                        <a href="/Contact">Contact Us</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mobile sidebar toggle
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                });
+            }
+
+            // User dropdown toggle
+            const userDropdown = document.querySelector('.user-dropdown');
+            if (userDropdown) {
+                userDropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const dropdownMenu = this.querySelector('.dropdown-menu');
+                    dropdownMenu.classList.toggle('show');
+
+                    // Close dropdown when clicking outside
+                    document.addEventListener('click', function closeUserDropdown(e) {
+                        if (!userDropdown.contains(e.target)) {
+                            dropdownMenu.classList.remove('show');
+                            document.removeEventListener('click', closeUserDropdown);
+                        }
+                    });
+                });
+            }
+
+            // Close alert button
+            const closeButtons = document.querySelectorAll('.close-alert');
+            closeButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    var alert = this.parentElement;
+                    alert.style.display = 'none';
+                });
+            });
+
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function() {
+                var alerts = document.querySelectorAll('.alert');
+                alerts.forEach(function(alert) {
+                    alert.style.display = 'none';
+                });
+            }, 5000);
+
+            // Update unread message count
+            async function updateUnreadMessageCount() {
+                try {
+                    const response = await fetch('/api/user/getUnreadMessageCount');
+                    if (response.ok) {
+                        const data = await response.json();
+                        document.getElementById('unread-message-count').textContent = data.count;
+                    }
+                } catch (error) {
+                    console.error('Error fetching unread message count:', error);
+                }
+            }
+
+            // Call initially and then update every 30 seconds
+            updateUnreadMessageCount();
+            setInterval(updateUnreadMessageCount, 30000);
+        });
+    </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

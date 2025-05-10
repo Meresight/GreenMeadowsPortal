@@ -1,0 +1,156 @@
+﻿@* Views/Poll/Details.cshtml *@
+@model GreenMeadowsPortal.ViewModels.PollDetailsViewModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Poll Details";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+}
+
+<div class="page-header">
+    <h1>Poll Details</h1>
+    <nav class="breadcrumb">
+        <a asp-controller="Dashboard" asp-action="@(Model.Role == "Admin" ? "AdminDashboard" : (Model.Role == "Staff" ? "StaffDashboard" : "HomeownerDashboard"))">@Model.Role</a> /
+        <a asp-controller="Poll" asp-action="Index">Polls & Surveys</a> /
+        Details
+    </nav>
+</div>
+
+<div class="content-section">
+    <div class="section-header">
+        <h2>@Model.Question</h2>
+        <div class="poll-meta">
+            <span class="created-by">Created by @Model.CreatedBy on @Model.CreatedDate.ToString("MMM dd, yyyy")</span>
+            @if (Model.ExpirationDate.HasValue)
+            {
+                if (Model.ExpirationDate > DateTime.Now && Model.IsActive)
+                {
+                    <span class="expires-on">Expires on @Model.ExpirationDate.Value.ToString("MMM dd, yyyy")</span>
+                }
+                else
+                {
+                    <span class="expired-on">Expired on @Model.ExpirationDate.Value.ToString("MMM dd, yyyy")</span>
+                }
+            }
+
+            <span class="poll-status @(Model.IsActive ? "active" : "inactive")">
+                <i class="fas @(Model.IsActive ? "fa-check-circle" : "fa-times-circle")"></i>
+                @(Model.IsActive ? "Active" : "Inactive")
+            </span>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Description))
+    {
+        <div class="poll-description">
+            <p>@Model.Description</p>
+        </div>
+    }
+
+    @if (Model.IsActive && !Model.HasVoted)
+    {
+        <div class="poll-voting">
+            <h3>Cast Your Vote</h3>
+            <form asp-controller="Poll" asp-action="Submit" method="post" class="vote-form">
+                <input type="hidden" name="PollId" value="@Model.Id" />
+                <div class="vote-buttons">
+                    <button type="submit" name="Response" value="true" class="btn yes-btn">
+                        <i class="fas fa-check"></i> Yes
+                    </button>
+                    <button type="submit" name="Response" value="false" class="btn no-btn">
+                        <i class="fas fa-times"></i> No
+                    </button>
+                </div>
+            </form>
+        </div>
+    }
+
+    <div class="poll-results-details">
+        <h3>Results</h3>
+
+        <div class="results-summary">
+            <div class="total-votes">
+                <span class="count">@Model.TotalResponses</span>
+                <span class="label">Total Votes</span>
+            </div>
+
+            <div class="result-percentage yes">
+                <span class="percentage">@Model.YesPercentage%</span>
+                <span class="label">Yes</span>
+                <span class="count">(@Model.YesCount votes)</span>
+            </div>
+
+            <div class="result-percentage no">
+                <span class="percentage">@Model.NoPercentage%</span>
+                <span class="label">No</span>
+                <span class="count">(@Model.NoCount votes)</span>
+            </div>
+        </div>
+
+        <div class="result-bar">
+            <div class="yes-bar" style="width: @(Model.YesPercentage)%">
+                @if (Model.YesPercentage >= 15)
+                {
+                    <span class="bar-label">Yes (@Model.YesPercentage%)</span>
+                }
+            </div>
+            <div class="no-bar" style="width: @(Model.NoPercentage)%">
+                @if (Model.NoPercentage >= 15)
+                {
+                    <span class="bar-label">No (@Model.NoPercentage%)</span>
+                }
+            </div>
+        </div>
+
+        @if (Model.HasVoted)
+        {
+            <div class="your-vote">
+                Your vote: <span class="@(Model.UserResponse == true ? "yes-vote" : "no-vote")">@(Model.UserResponse == true ? "Yes" : "No")</span>
+            </div>
+        }
+    </div>
+
+    @if (Model.RecentResponses.Any())
+    {
+        <div class="recent-votes">
+            <h3>Recent Votes</h3>
+            <div class="votes-list">
+                @foreach (var response in Model.RecentResponses)
+                {
+                    <div class="vote-item">
+                        <div class="vote-user">@response.UserName</div>
+                        <div class="vote-response @(response.Response ? "yes-vote" : "no-vote")">
+                            @(response.Response ? "Yes" : "No")
+                        </div>
+                        <div class="vote-date">@response.ResponseDate.ToString("MMM dd, yyyy hh:mm tt")</div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @if (User.IsInRole("Admin") && Model.IsActive)
+    {
+        <div class="admin-actions">
+            <form asp-controller="Poll" asp-action="Close" method="post" onsubmit="return confirm('Are you sure you want to close this poll? This action cannot be undone.');">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-warning">
+                    <i class="fas fa-ban"></i> Close Poll
+                </button>
+            </form>
+
+            <form asp-controller="Poll" asp-action="Delete" method="post" onsubmit="return confirm('Are you sure you want to delete this poll? This action cannot be undone.');">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Delete Poll
+                </button>
+            </form>
+        </div>
+    }
+
+    <div class="back-link">
+        <a asp-controller="Poll" asp-action="Index">
+            <i class="fas fa-arrow-left"></i> Back to Polls
+        </a>
+    </div>
+</div>

@@ -1,0 +1,707 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@using GreenMeadowsPortal.Models
+@model AnnouncementDetailsViewModel
+
+@{
+    ViewData["Title"] = "Read Receipts - Green Meadows Portal";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Meadows | Read Receipts</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/admin.css">
+    <style>
+        /* Consistent styling with admin dashboard */
+        .receipts-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .card-header {
+            padding: 15px 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .search-filter {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .search-box {
+            position: relative;
+            flex-grow: 1;
+        }
+
+            .search-box input {
+                width: 100%;
+                padding: 10px 15px 10px 40px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 14px;
+            }
+
+            .search-box i {
+                position: absolute;
+                left: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #6c757d;
+            }
+
+        .filter-group, .sort-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .filter-group label, .sort-group label {
+                font-weight: 500;
+                color: #495057;
+            }
+
+            .filter-group select, .sort-group select {
+                padding: 8px 12px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                background-color: #fff;
+            }
+
+        .table-responsive {
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .receipts-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .receipts-table th {
+                background-color: #f8f9fa;
+                padding: 12px 15px;
+                text-align: left;
+                font-weight: 600;
+                color: #495057;
+                border-bottom: 2px solid #e9ecef;
+            }
+
+            .receipts-table td {
+                padding: 12px 15px;
+                border-bottom: 1px solid #e9ecef;
+                color: #495057;
+            }
+
+            .receipts-table tr:last-child td {
+                border-bottom: none;
+            }
+
+            .receipts-table tr:hover {
+                background-color: #f8f9fa;
+            }
+
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar-sm {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+            .avatar-sm img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .role-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+            .role-badge.admin {
+                background-color: #e3f2fd;
+                color: #1976d2;
+            }
+
+            .role-badge.staff {
+                background-color: #e8f5e9;
+                color: #2e7d32;
+            }
+
+            .role-badge.homeowner {
+                background-color: #fff8e1;
+                color: #f57f17;
+            }
+
+        .receipts-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            background-color: #f8f9fa;
+            padding: 15px 20px;
+            border-top: 1px solid #e9ecef;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .summary-item .label {
+                font-weight: 600;
+                color: #495057;
+            }
+
+            .summary-item .value {
+                font-weight: 500;
+                color: #1976d2;
+            }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+            .btn-secondary:hover {
+                background-color: #e0e0e0;
+            }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            color: #adb5bd;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .empty-state p {
+            color: #6c757d;
+            max-width: 400px;
+        }
+
+        </style>
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar Navigation -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Green Meadows</h3>
+                <div class="sidebar-logo">GM</div>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <img src="/images/default-avatar.png" alt="Admin Avatar" id="user-avatar">
+                </div>
+                <div class="user-info">
+                    <h4 id="user-name">Admin</h4>
+                    <p id="user-role">Administrator</p>
+                </div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li><a asp-controller="Dashboard" asp-action="AdminDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a asp-controller="Dashboard" asp-action="UserManagement"><i class="fas fa-users"></i> User Management</a></li>
+                <li class="active"><a asp-controller="Announcement" asp-action="Index"><i class="fas fa-bullhorn"></i> Announcements</a></li>
+                <li><a asp-controller="Dashboard" asp-action="Billing"><i class="fas fa-file-invoice-dollar"></i> Billing</a></li>
+                <li><a href="/Facilities"><i class="fas fa-swimming-pool"></i> Facilities</a></li>
+                <li><a href="/ServiceRequests"><i class="fas fa-tools"></i> Service Requests</a></li>
+                <li><a href="/Documents"><i class="fas fa-file-alt"></i> Documents</a></li>
+                <li><a href="/Forum"><i class="fas fa-comments"></i> Community Forum</a></li>
+                <li><a href="/Security"><i class="fas fa-shield-alt"></i> Security</a></li>
+                <li><a href="/Events"><i class="fas fa-calendar-alt"></i> Events</a></li>
+                <li><a href="/Reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
+                <li><a href="/Settings"><i class="fas fa-cog"></i> Settings</a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a asp-controller="Account" asp-action="Profile"><i class="fas fa-user-cog"></i> Profile</a>
+                <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i>Logout</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <!-- Top Navigation -->
+            <header class="top-navbar">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="back-button">
+                    <a asp-controller="Announcement" asp-action="Details" asp-route-id="@Model.Id">
+                        <i class="fas fa-arrow-left"></i> Back to Announcement
+                    </a>
+                </div>
+
+                <div class="navbar-right">
+                    <div class="notification-bell">
+                        <a asp-controller="Notification" asp-action="Index">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-count">0</span>
+                        </a>
+                    </div>
+                    <div class="inbox-icon">
+                        <a asp-controller="Contact" asp-action="Inbox">
+                            <i class="fas fa-envelope"></i>
+                            <span class="unread-messages" id="unread-message-count">0</span>
+                        </a>
+                    </div>
+                    <div class="user-dropdown">
+                        <img src="/images/default-avatar.png" alt="Admin Avatar">
+                        <span>Admin</span>
+                        <i class="fas fa-chevron-down"></i>
+
+                        <div class="dropdown-menu">
+                            <a asp-controller="Account" asp-action="Profile"><i class="fas fa-user"></i> My Profile</a>
+                            <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                            <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i>Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="main-content">
+                <div class="page-header">
+                    <h1>Read Receipts</h1>
+                    <nav class="breadcrumb">
+                        <a asp-controller="Dashboard" asp-action="AdminDashboard">Dashboard</a> /
+                        <a asp-controller="Announcement" asp-action="Index">Announcements</a> /
+                        <a asp-controller="Announcement" asp-action="Details" asp-route-id="@Model.Id">@Model.Title</a> /
+                        Read Receipts
+                    </nav>
+                </div>
+
+                <!-- Announcement Summary -->
+                <div class="card receipts-card" style="margin-bottom: 20px;">
+                    <div class="card-header">
+                        <h2 style="margin: 0;">@Model.Title</h2>
+                        <div class="announcement-meta" style="margin-top: 5px; color: #6c757d; font-size: 14px;">
+                            <span class="meta-item">
+                                <i class="fas fa-user"></i> Posted by: @Model.AuthorName
+                            </span>
+                            <span class="meta-item" style="margin-left: 15px;">
+                                <i class="fas fa-calendar"></i> Published: @($"{Model.PublishDate:MMM dd, yyyy}")
+                            </span>
+                            <span class="meta-item" style="margin-left: 15px;">
+                                <i class="fas fa-eye"></i> Read by: @Model.ReadCount users
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Read Receipts Table -->
+                <div class="receipts-card">
+                    <div class="card-header">
+                        <div class="header-row">
+                            <h2 style="margin: 0;">User Read Receipts</h2>
+                            <div class="card-actions">
+                                <button class="btn btn-secondary" id="export-btn">
+                                    <i class="fas fa-download"></i> Export
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.ReadReceipts != null && Model.ReadReceipts.Any())
+                        {
+                            <div class="search-filter">
+                                <div class="search-box">
+                                    <input type="text" id="search-input" placeholder="Search users...">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="role-filter">Filter by role:</label>
+                                    <select id="role-filter">
+                                        <option value="all">All Roles</option>
+                                        <option value="Admin">Admin</option>
+                                        <option value="Staff">Staff</option>
+                                        <option value="Homeowner">Homeowner</option>
+                                    </select>
+                                </div>
+                                <div class="sort-group">
+                                    <label for="sort-by">Sort by:</label>
+                                    <select id="sort-by">
+                                        <option value="date-desc">Date (Newest First)</option>
+                                        <option value="date-asc">Date (Oldest First)</option>
+                                        <option value="name-asc">Name (A-Z)</option>
+                                        <option value="name-desc">Name (Z-A)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="receipts-table">
+                                    <thead>
+                                        <tr>
+                                            <th>User</th>
+                                            <th>Role</th>
+                                            <th>Read Date</th>
+                                            <th>Time Elapsed</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="receipts-tbody">
+                                        @foreach (var receipt in Model.ReadReceipts)
+                                        {
+                                            <tr data-name="@receipt.UserName" data-role="@receipt.UserRole">
+                                                <td>
+                                                    <div class="user-cell">
+                                                        <div class="avatar-sm">
+                                                            <!-- Replace with actual user avatar if available -->
+                                                            <img src="/images/default-avatar.png" alt="@receipt.UserName">
+                                                        </div>
+                                                        <span>@receipt.UserName</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    @switch (receipt.UserRole)
+                                                    {
+                                                        case "Admin":
+                                                            <span class="role-badge admin">Admin</span>
+                                                            break;
+                                                        case "Staff":
+                                                            <span class="role-badge staff">Staff</span>
+                                                            break;
+                                                        case "Homeowner":
+                                                            <span class="role-badge homeowner">Homeowner</span>
+                                                            break;
+                                                        default:
+                                                            <span class="role-badge">@receipt.UserRole</span>
+                                                            break;
+                                                    }
+                                                </td>
+                                                <td>@($"{receipt.ReadDate:MMM dd, yyyy HH:mm}")</td>
+                                                <td>
+                                                    @{
+                                                        // Handle the time elapsed calculation safely with nullable types
+                                                        DateTime readDate = receipt.ReadDate;
+                                                        DateTime publishDate = Model.PublishDate ?? DateTime.Now;
+                                                        TimeSpan timeElapsed = readDate - publishDate;
+
+                                                        if (timeElapsed.TotalDays >= 1)
+                                                        {
+                                                            <span>@((int)Math.Floor(timeElapsed.TotalDays)) day(s) after publishing</span>
+                                                        }
+                                                        else if (timeElapsed.TotalHours >= 1)
+                                                        {
+                                                            <span>@((int)Math.Floor(timeElapsed.TotalHours)) hour(s) after publishing</span>
+                                                        }
+                                                        else if (timeElapsed.TotalMinutes >= 1)
+                                                        {
+                                                            <span>@((int)Math.Floor(timeElapsed.TotalMinutes)) minute(s) after publishing</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span>Less than a minute after publishing</span>
+                                                        }
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="receipts-summary">
+                                <div class="summary-item">
+                                    <span class="label">Total Readers:</span>
+                                    <span class="value">@Model.ReadReceipts.Count</span>
+                                </div>
+
+                                @{
+                                    var adminCount = Model.ReadReceipts.Count(r => r.UserRole == "Admin");
+                                    var staffCount = Model.ReadReceipts.Count(r => r.UserRole == "Staff");
+                                    var homeownerCount = Model.ReadReceipts.Count(r => r.UserRole == "Homeowner");
+                                }
+
+                                <div class="summary-item">
+                                    <span class="label">Admins:</span>
+                                    <span class="value">@adminCount</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="label">Staff:</span>
+                                    <span class="value">@staffCount</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="label">Homeowners:</span>
+                                    <span class="value">@homeownerCount</span>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <i class="fas fa-eye-slash"></i>
+                                </div>
+                                <h3>No Read Receipts Found</h3>
+                                <p>No users have read this announcement yet. Check back later.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="main-footer">
+                <div class="footer-content">
+                    <p>&copy; @DateTime.Now.Year Green Meadows Subdivision. All rights reserved.</p>
+                    <div class="footer-links">
+                        <a href="/Privacy">Privacy Policy</a>
+                        <a href="/Terms">Terms of Service</a>
+                        <a href="/Contact">Contact Us</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fetch current user information for the UI
+            fetchCurrentUser();
+
+            // Search functionality
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', filterTable);
+            }
+
+            // Role filter
+            const roleFilter = document.getElementById('role-filter');
+            if (roleFilter) {
+                roleFilter.addEventListener('change', filterTable);
+            }
+
+            // Sort functionality
+            const sortSelect = document.getElementById('sort-by');
+            if (sortSelect) {
+                sortSelect.addEventListener('change', sortTable);
+            }
+
+            // Export button
+            const exportBtn = document.getElementById('export-btn');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', exportReceipts);
+            }
+
+            // User dropdown
+            const userDropdown = document.querySelector('.user-dropdown');
+            if (userDropdown) {
+                userDropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const menu = this.querySelector('.dropdown-menu');
+                    menu.classList.toggle('show');
+                });
+
+                document.addEventListener('click', function(e) {
+                    const menu = document.querySelector('.dropdown-menu.show');
+                    if (menu && !menu.parentElement.contains(e.target)) {
+                        menu.classList.remove('show');
+                    }
+                });
+            }
+
+            // Mobile sidebar toggle
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                });
+            }
+
+            // Fetch current user data
+            async function fetchCurrentUser() {
+                try {
+                    const response = await fetch('/api/User/GetCurrentUser');
+                    if (response.ok) {
+                        const data = await response.json();
+
+                        // Update user name and avatar
+                        const userNameElem = document.getElementById('user-name');
+                        const userRoleElem = document.getElementById('user-role');
+                        const userAvatarElem = document.getElementById('user-avatar');
+                        const navUserName = document.querySelector('.user-dropdown span');
+                        const navUserAvatar = document.querySelector('.user-dropdown img');
+                        const notificationCount = document.querySelector('.notification-count');
+
+                        if (userNameElem) userNameElem.textContent = data.firstName;
+                        if (userRoleElem) userRoleElem.textContent = data.role;
+                        if (userAvatarElem) userAvatarElem.src = data.profileImageUrl || '/images/default-avatar.png';
+                        if (navUserName) navUserName.textContent = data.firstName;
+                        if (navUserAvatar) navUserAvatar.src = data.profileImageUrl || '/images/default-avatar.png';
+                        if (notificationCount) notificationCount.textContent = data.notificationCount;
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch user data:', error);
+                }
+            }
+
+            // Filter table function
+            function filterTable() {
+                const searchValue = searchInput.value.toLowerCase();
+                const roleValue = roleFilter.value.toLowerCase();
+                const rows = document.querySelectorAll('#receipts-tbody tr');
+
+                rows.forEach(row => {
+                    const name = row.getAttribute('data-name').toLowerCase();
+                    const role = row.getAttribute('data-role').toLowerCase();
+
+                    const nameMatch = name.includes(searchValue);
+                    const roleMatch = roleValue === 'all' || role === roleValue;
+
+                    if (nameMatch && roleMatch) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            }
+
+            // Sort table function
+            function sortTable() {
+                const sortValue = sortSelect.value;
+                const tbody = document.getElementById('receipts-tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+
+                rows.sort((a, b) => {
+                    if (sortValue === 'name-asc') {
+                        return a.getAttribute('data-name').localeCompare(b.getAttribute('data-name'));
+                    } else if (sortValue === 'name-desc') {
+                        return b.getAttribute('data-name').localeCompare(a.getAttribute('data-name'));
+                    } else if (sortValue === 'date-asc') {
+                        // Assuming the date is in the third cell
+                        return new Date(a.cells[2].textContent) - new Date(b.cells[2].textContent);
+                    } else {
+                        // Default: date-desc
+                        return new Date(b.cells[2].textContent) - new Date(a.cells[2].textContent);
+                    }
+                });
+
+                // Remove existing rows
+                rows.forEach(row => {
+                    tbody.removeChild(row);
+                });
+
+                // Add sorted rows
+                rows.forEach(row => {
+                    tbody.appendChild(row);
+                });
+            }
+
+            // Export function
+            function exportReceipts() {
+                // Create CSV content
+                let csvContent = "data:text/csv;charset=utf-8,";
+                csvContent += "User,Role,Read Date,Time Elapsed\n";
+
+                const rows = document.querySelectorAll('#receipts-tbody tr');
+                rows.forEach(row => {
+                    if (row.style.display !== 'none') {
+                        // Skip hidden (filtered out) rows
+                        const name = row.getAttribute('data-name').replace(/,/g, ' ');
+                        const role = row.getAttribute('data-role');
+                        const date = row.cells[2].textContent;
+                        const elapsed = row.cells[3].textContent;
+
+                        csvContent += `"${name}","${role}","${date}","${elapsed}"\n`;
+                    }
+                });
+
+                // Create download link
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "read_receipts_@(Model.Id).csv");
+                        document.body.appendChild(link);
+
+                // Trigger download
+                link.click();
+                document.body.removeChild(link);
+            }
+
+            // Start notification polling
+            setInterval(async function() {
+                try {
+                    const response = await fetch('/api/announcements/unread-count');
+                    if (response.ok) {
+                        const data = await response.json();
+                        const notificationCount = document.querySelector('.notification-count');
+                        if (notificationCount) {
+                            notificationCount.textContent = data.count;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error updating notification count:', error);
+                }
+            }, 30000); // Update every 30 seconds
+        });
+    </script>
+</body>
+</html>

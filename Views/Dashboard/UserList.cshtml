@@ -1,0 +1,38 @@
+﻿@{
+    ViewData["Title"] = "User List";
+}
+
+<h2>User List</h2>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        Error: @ViewBag.Error
+    </div>
+}
+else
+{
+    <p>Found @ViewBag.UserCount users in the database</p>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in ViewBag.Users)
+            {
+                <tr>
+                    <td>@user.Email</td>
+                    <td>@user.FirstName</td>
+                    <td>@user.LastName</td>
+                    <td>@user.Status</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

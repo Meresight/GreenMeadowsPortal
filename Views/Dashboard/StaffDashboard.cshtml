@@ -1,0 +1,540 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@model StaffDashboardViewModel
+
+@{
+    ViewData["Title"] = "Staff Dashboard - Green Meadows Portal";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Meadows | Staff Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/admin.css">
+    <link rel="stylesheet" href="~/css/staff.css">
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Include the shared sidebar -->
+        <partial name="_Sidebar" />
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <!-- Top Navigation -->
+            <header class="top-navbar">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="greeting">
+                    <h2>Welcome back, @Model.FirstName!</h2>
+                    <p>@DateTime.Now.ToString("dddd, MMMM dd, yyyy")</p>
+                </div>
+
+                <div class="navbar-right">
+                    <div class="notification-bell">
+                        <a asp-controller="Notification" asp-action="Index">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-count">@Model.NotificationCount</span>
+                        </a>
+                    </div>
+                    <div class="inbox-icon">
+                        <a asp-controller="Contact" asp-action="Inbox">
+                            <i class="fas fa-envelope"></i>
+                            <span class="unread-messages" id="unread-message-count">0</span>
+                        </a>
+                    </div>
+                    <div class="user-dropdown">
+                        <img src="@Model.ProfileImageUrl" alt="Staff Avatar">
+                        <span>@Model.FirstName</span>
+                        <i class="fas fa-chevron-down"></i>
+
+                        <div class="dropdown-menu">
+                            <a asp-controller="Dashboard" asp-action="StaffProfile"><i class="fas fa-user"></i> My Profile</a>
+                            <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                            <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i>Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="main-content">
+                <!-- Success Message (if available in TempData) -->
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                        <button class="close-alert"><i class="fas fa-times"></i></button>
+                    </div>
+                }
+
+                <!-- Staff Dashboard Overview -->
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-tools"></i></div>
+                        <div class="stat-details">
+                            <h3>@Model.PendingRequests</h3>
+                            <p>Pending Requests</p>
+                        </div>
+                        <div class="stat-footer">
+                            <a asp-controller="ServiceRequests" asp-action="Index">Manage <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <div class="stat-details">
+                            <h3>@Model.TotalResidents</h3>
+                            <p>Total Residents</p>
+                        </div>
+                        <div class="stat-footer">
+                            <a href="/Residents">View <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                        <div class="stat-details">
+                            <h3>₱@Model.DuePaymentsTotal.ToString("N2")</h3>
+                            <p>Due Payments</p>
+                        </div>
+                        <div class="stat-footer">
+                            <a href="/Payments">Details <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                        <div class="stat-details">
+                            <h3>@Model.UpcomingEvents</h3>
+                            <p>Upcoming Events</p>
+                        </div>
+                        <div class="stat-footer">
+                            <a href="/Events">View <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Row -->
+                <div class="content-row">
+                    <!-- Pending Service Requests -->
+                    <div class="content-section half">
+                        <div class="section-header">
+                            <h2>Pending Service Requests</h2>
+                            <a href="/ServiceRequests?status=pending" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+                        </div>
+
+                        @if (Model.RecentServiceRequests != null && Model.RecentServiceRequests.Count > 0)
+                        {
+                            <div class="service-requests-table">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Title</th>
+                                            <th>Resident</th>
+                                            <th>Date</th>
+                                            <th>Priority</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var request in Model.RecentServiceRequests)
+                                        {
+                                            <tr>
+                                                <td>SR-@request.Id</td>
+                                                <td>@request.Title</td>
+                                                <td>@request.RequesterName</td>
+                                                <td>@request.DateSubmitted.ToString("MMM dd, yyyy")</td>
+                                                <td><span class="priority @request.PriorityClass">@request.Priority</span></td>
+                                                <td>
+                                                    <a href="/ServiceRequests/Details/@request.Id" class="btn small-btn">View</a>
+                                                    <a href="/ServiceRequests/Process/@request.Id" class="btn small-btn primary">Process</a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <i class="fas fa-clipboard-check"></i>
+                                </div>
+                                <h3>No Pending Requests</h3>
+                                <p>There are no pending service requests at this time.</p>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Recent User Activity -->
+                    <div class="content-section half">
+                        <div class="section-header">
+                            <h2>Recent User Activity</h2>
+                            <a href="/Reports/UserActivity" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+                        </div>
+
+                        @if (Model.RecentUsers != null && Model.RecentUsers.Count > 0)
+                        {
+                            <div class="user-activity-list">
+                                @foreach (var user in Model.RecentUsers)
+                                {
+                                    <div class="user-activity-item">
+                                        <div class="user-avatar">
+                                            <img src="@user.ProfileImageUrl" alt="@user.FullName">
+                                        </div>
+                                        <div class="user-activity-details">
+                                            <h4>@user.FullName</h4>
+                                            <p>@user.ActivityDescription</p>
+                                            <span class="activity-time">@user.ActivityTime</span>
+                                        </div>
+                                        <div class="activity-actions">
+                                            <a href="/Residents/Details/@user.Id" class="btn small-btn">View Profile</a>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <i class="fas fa-user-clock"></i>
+                                </div>
+                                <h3>No Recent Activity</h3>
+                                <p>There is no recent user activity to display.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Upcoming Events -->
+                <div class="content-section">
+                    <div class="section-header">
+                        <h2>Upcoming Events</h2>
+                        <a href="/Events" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+                    </div>
+
+                    @if (Model.UpcomingEventsList != null && Model.UpcomingEventsList.Count > 0)
+                    {
+                        <div class="events-grid">
+                            @foreach (var evt in Model.UpcomingEventsList)
+                            {
+                                <div class="event-card">
+                                    <div class="event-date">
+                                        <span class="month">@evt.EventDate.ToString("MMM")</span>
+                                        <span class="day">@evt.EventDate.Day</span>
+                                    </div>
+                                    <div class="event-details">
+                                        <h3>@evt.Title</h3>
+                                        <div class="event-info">
+                                            <div class="info-item"><i class="fas fa-map-marker-alt"></i> @evt.Location</div>
+                                            <div class="info-item"><i class="fas fa-clock"></i> @evt.StartTime.ToString("h:mm tt") - @evt.EndTime.ToString("h:mm tt")</div>
+                                        </div>
+                                    </div>
+                                    <div class="event-actions">
+                                        <a href="/Events/Details/@evt.Id" class="btn small-btn">View</a>
+                                        <a href="/Events/Edit/@evt.Id" class="btn small-btn primary">Manage</a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                            <h3>No Upcoming Events</h3>
+                            <p>There are no upcoming events scheduled at this time.</p>
+                            <a href="/Events/Create" class="btn primary-btn mt-4">
+                                <i class="fas fa-plus"></i> Schedule Event
+                            </a>
+                        </div>
+                    }
+                </div>
+
+                <!-- Daily Stats Summary -->
+                <div class="content-section">
+                    <div class="section-header">
+                        <h2>Today's Summary</h2>
+                    </div>
+
+                    <div class="stats-summary">
+                        <div class="summary-card">
+                            <div class="summary-icon">
+                                <i class="fas fa-user-clock"></i>
+                            </div>
+                            <div class="summary-data">
+                                <h3>@Model.DailyActiveUsers</h3>
+                                <p>Active Users</p>
+                            </div>
+                        </div>
+
+                        <div class="summary-card">
+                            <div class="summary-icon">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <div class="summary-data">
+                                <h3>@Model.NewUsersToday</h3>
+                                <p>New Users</p>
+                            </div>
+                        </div>
+
+                        <div class="summary-card">
+                            <div class="summary-icon">
+                                <i class="fas fa-sign-in-alt"></i>
+                            </div>
+                            <div class="summary-data">
+                                <h3>@Model.TotalLoginToday</h3>
+                                <p>Login Count</p>
+                            </div>
+                        </div>
+
+                        <div class="summary-card">
+                            <div class="summary-icon">
+                                <i class="fas fa-tools"></i>
+                            </div>
+                            <div class="summary-data">
+                                <h3>@Model.RequestsCreatedToday</h3>
+                                <p>New Requests</p>
+                            </div>
+                        </div>
+
+                        <div class="summary-card">
+                            <div class="summary-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="summary-data">
+                                <h3>@Model.RequestsCompletedToday</h3>
+                                <p>Completed Requests</p>
+                            </div>
+                        </div>
+
+                        <div class="summary-card">
+                            <div class="summary-icon">
+                                <i class="fas fa-hourglass-half"></i>
+                            </div>
+                            <div class="summary-data">
+                                <h3>@Model.AverageResolutionTime.ToString("0.0")</h3>
+                                <p>Avg. Resolution Time (hrs)</p>
+                            </div>
+                        </div>
+
+                        <div class="summary-card">
+                            <div class="summary-icon">
+                                <i class="fas fa-swimming-pool"></i>
+                            </div>
+                            <div class="summary-data">
+                                <h3>@Model.FacilityBookingsToday</h3>
+                                <p>Facility Bookings</p>
+                            </div>
+                        </div>
+
+                        <div class="summary-card">
+                            <div class="summary-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="summary-data">
+                                <h3>@Model.MostBookedFacility</h3>
+                                <p>Most Booked Facility</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="content-section">
+                    <div class="section-header">
+                        <h2>Quick Actions</h2>
+                    </div>
+
+                    <div class="quick-actions">
+                        <a asp-controller="Announcement" asp-action="Create" class="quick-action-card">
+                            <div class="quick-action-icon"><i class="fas fa-bullhorn"></i></div>
+                            <h4>Create Announcement</h4>
+                            <p>Post a new announcement to the community</p>
+                        </a>
+
+                        <a asp-controller="ServiceRequests" asp-action="Index" class="quick-action-card">
+                            <div class="quick-action-icon"><i class="fas fa-tools"></i></div>
+                            <h4>Service Requests</h4>
+                            <p>View and manage maintenance and service requests</p>
+                        </a>
+                        <a href="/Events/Create" class="quick-action-card">
+                            <div class="quick-action-icon"><i class="fas fa-calendar-plus"></i></div>
+                            <h4>Schedule Event</h4>
+                            <p>Add a new event to the community calendar</p>
+                        </a>
+
+                        <a href="/Reports/Generate" class="quick-action-card">
+                            <div class="quick-action-icon"><i class="fas fa-chart-pie"></i></div>
+                            <h4>Generate Report</h4>
+                            <p>Create reports for management</p>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Feedback Statistics -->
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-comment-dots"></i> Feedback Overview</h2>
+                        <a asp-controller="Feedback" asp-action="Index" class="btn btn-primary">View All</a>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-comment-dots"></i>
+                            </div>
+                            <div class="stat-details">
+                                <h3>@Model.TotalFeedbacks</h3>
+                                <p>Total Feedbacks</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                            <div class="stat-details">
+                                <h3>@Model.NewFeedbacks</h3>
+                                <p>New/Pending</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-details">
+                                <h3>@Model.ResolvedFeedbacks</h3>
+                                <p>Resolved</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (Model.RecentFeedbacks.Any())
+                    {
+                        <div class="recent-feedbacks">
+                            <h3>Recent Feedbacks</h3>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Subject</th>
+                                            <th>Type</th>
+                                            <th>Submitted By</th>
+                                            <th>Status</th>
+                                            <th>Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var feedback in Model.RecentFeedbacks)
+                                        {
+                                            <tr>
+                                                <td>FB-@feedback.Id</td>
+                                                <td>@feedback.Subject</td>
+                                                <td>@feedback.Type</td>
+                                                <td>
+                                                    <div class="user-info">
+                                                        <img src="@feedback.SubmittedByAvatar" alt="@feedback.SubmittedBy" class="user-avatar">
+                                                        <span>@feedback.SubmittedBy</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="status-badge @(feedback.Status == FeedbackStatus.New ? "status-new" : "status-resolved")">
+                                                        @feedback.Status
+                                                    </span>
+                                                </td>
+                                                <td>@feedback.SubmittedDate.ToString("MMM dd, yyyy")</td>
+                                                <td>
+                                                    <a asp-controller="Feedback" asp-action="Details" asp-route-id="@feedback.Id" class="btn btn-sm btn-primary">
+                                                        <i class="fas fa-eye"></i> View
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="main-footer">
+                <div class="footer-content">
+                    <p>&copy; @DateTime.Now.Year Green Meadows Subdivision. All rights reserved.</p>
+                    <div class="footer-links">
+                        <a href="/Help">Help Center</a>
+                        <a href="/Privacy">Privacy Policy</a>
+                        <a href="/Terms">Terms of Service</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // User dropdown toggle
+            const userDropdown = document.querySelector('.user-dropdown');
+            if (userDropdown) {
+                userDropdown.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    this.classList.toggle('open');
+                    const dropdownMenu = this.querySelector('.dropdown-menu');
+                    dropdownMenu.classList.toggle('show');
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!userDropdown.contains(event.target)) {
+                        userDropdown.classList.remove('open');
+                        const dropdownMenu = userDropdown.querySelector('.dropdown-menu');
+                        if (dropdownMenu) dropdownMenu.classList.remove('show');
+                    }
+                });
+            }
+
+            // Mobile sidebar toggle
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                });
+            }
+
+            // Close alert buttons
+            const closeButtons = document.querySelectorAll('.close-alert');
+            closeButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    var alert = this.parentElement;
+                    alert.style.display = 'none';
+                });
+            });
+
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function() {
+                var alerts = document.querySelectorAll('.alert');
+                alerts.forEach(function(alert) {
+                    alert.style.display = 'none';
+                });
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,573 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model GreenMeadowsPortal.ViewModels.UserFormViewModel
+
+@{
+    ViewData["Title"] = "Add New User - Green Meadows Portal";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Meadows | Add New User</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/admin.css" />
+    <link rel="stylesheet" href="~/css/adduser.css" />
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Admin Sidebar Navigation -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Green Meadows</h3>
+                <div class="sidebar-logo">GM</div>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <img src="@(string.IsNullOrEmpty(Model.CurrentUserProfileImageUrl) ? "/images/default-profile.png" : Model.CurrentUserProfileImageUrl)" alt="Admin Avatar">
+                </div>
+                <div class="user-info">
+                    <h4>@Model.CurrentUserName</h4>
+                    <p>@Model.CurrentRole</p>
+                </div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li>
+                    <a asp-controller="Dashboard" asp-action="AdminDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                </li>
+                <li class="active">
+                    <a asp-controller="Dashboard" asp-action="UserManagement"><i class="fas fa-users"></i> User Management</a>
+                </li>
+
+                <li>
+                    <a href="/Admin/Announcements"><i class="fas fa-bullhorn"></i> Announcements</a>
+                </li>
+                <li>
+                    <a href="/Admin/Billing"><i class="fas fa-file-invoice-dollar"></i> Billing</a>
+                </li>
+                <li>
+                    <a href="/Admin/Facilities"><i class="fas fa-swimming-pool"></i> Facilities</a>
+                </li>
+                <li>
+                    <a href="/Admin/ServiceRequests"><i class="fas fa-tools"></i> Service Requests</a>
+                </li>
+                <li>
+                    <a href="/Admin/Documents"><i class="fas fa-file-alt"></i> Documents</a>
+                </li>
+                <li>
+                    <a href="/Admin/Forum"><i class="fas fa-comments"></i> Community Forum</a>
+                </li>
+                <li>
+                    <a href="/Admin/Security"><i class="fas fa-shield-alt"></i> Security</a>
+                </li>
+                <li>
+                    <a href="/Admin/Events"><i class="fas fa-calendar-alt"></i> Events</a>
+                </li>
+                <li>
+                    <a href="/Admin/Reports"><i class="fas fa-chart-bar"></i> Reports</a>
+                </li>
+                <li>
+                    <a href="/Admin/Polls"><i class="fas fa-poll"></i> Polls & Surveys</a>
+                </li>
+                <li>
+                    <a href="/Admin/Settings"><i class="fas fa-cog"></i> Settings</a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="/Admin/Profile"><i class="fas fa-user-cog"></i> Profile</a>
+                <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i>Logout</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <!-- Top Navigation -->
+            <header class="top-navbar">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="navbar-right">
+                    <div class="notification-bell">
+                        <a asp-controller="Notification" asp-action="Index">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-count">@Model.NotificationCount</span>
+                        </a>
+                    </div>
+                    <div class="inbox-icon">
+                        <a asp-controller="Contact" asp-action="Inbox">
+                            <i class="fas fa-envelope"></i>
+                            <span class="unread-messages" id="unread-message-count">0</span>
+                        </a>
+                    </div>
+                    <div class="user-dropdown">
+                        <img src="@(string.IsNullOrEmpty(Model.CurrentUserProfileImageUrl) ? "/images/default-profile.png" : Model.CurrentUserProfileImageUrl)" alt="Admin Avatar">
+                        <span>@Model.CurrentUserName</span>
+                        <i class="fas fa-chevron-down"></i>
+
+                        <div class="dropdown-menu">
+                            <a href="/Admin/Profile"><i class="fas fa-user-cog"></i> My Profile</a>
+                            <a href="/Admin/Settings"><i class="fas fa-cog"></i> Settings</a>
+                            <a asp-controller="Dashboard" asp-action="Logout"><i class="fas fa-sign-out-alt"></i>Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="main-content">
+                <div class="page-header">
+                    <h1>Add New User</h1>
+                    <nav class="breadcrumb">
+                        <a href="/Admin/Dashboard">Admin</a> / <a href="/Admin/UserManagement">User Management</a> / Add New User
+                    </nav>
+                </div>
+
+                <!-- Alert Messages -->
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                        <button class="close-alert"><i class="fas fa-times"></i></button>
+                    </div>
+                }
+
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+                        <button class="close-alert"><i class="fas fa-times"></i></button>
+                    </div>
+                }
+
+                <!-- Add User Form -->
+                <div class="user-form-container">
+                    <form id="user-form" asp-controller="UserManagement" asp-action="SaveUser" method="post" enctype="multipart/form-data" class="user-form">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="form-section">
+                            <h2 class="section-title"><i class="fas fa-user"></i> Personal Information</h2>
+
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label asp-for="FirstName">First Name <span class="required">*</span></label>
+                                    <input asp-for="FirstName" class="form-control" required />
+                                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="LastName">Last Name <span class="required">*</span></label>
+                                    <input asp-for="LastName" class="form-control" required />
+                                    <span asp-validation-for="LastName" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="Email">Email Address <span class="required">*</span></label>
+                                    <input type="email" asp-for="Email" class="form-control" required />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="PhoneNumber">Phone Number</label>
+                                    <input type="tel" asp-for="PhoneNumber" class="form-control" />
+                                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="DateOfBirth">Date of Birth</label>
+                                    <input type="date" asp-for="DateOfBirth" class="form-control" />
+                                    <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Profile Image</label>
+                                    <div class="file-upload-container">
+                                        <label for="ProfileImage" class="file-upload-label">
+                                            <i class="fas fa-cloud-upload-alt"></i> Choose Image
+                                        </label>
+                                        <input type="file" id="ProfileImage" name="ProfileImage" class="file-upload" accept="image/*" />
+                                        <span id="file-name">No file chosen</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h2 class="section-title"><i class="fas fa-home"></i> Property Information</h2>
+
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label asp-for="Address">Address</label>
+                                    <input asp-for="Address" class="form-control" />
+                                    <span asp-validation-for="Address" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="Unit">Unit/Apartment Number</label>
+                                    <input asp-for="Unit" class="form-control" />
+                                    <span asp-validation-for="Unit" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="PropertyType">Property Type</label>
+                                    <select asp-for="PropertyType" class="form-select">
+                                        <option value="">Select Property Type</option>
+                                        <option value="Apartment">Apartment</option>
+                                        <option value="Townhouse">Townhouse</option>
+                                        <option value="Single Family Home">Single Family Home</option>
+                                        <option value="Villa">Villa</option>
+                                    </select>
+                                    <span asp-validation-for="PropertyType" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="OwnershipStatus">Ownership Status</label>
+                                    <select asp-for="OwnershipStatus" class="form-select">
+                                        <option value="">Select Ownership Status</option>
+                                        <option value="Owner">Owner</option>
+                                        <option value="Tenant">Tenant</option>
+                                    </select>
+                                    <span asp-validation-for="OwnershipStatus" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h2 class="section-title"><i class="fas fa-user-shield"></i> Account Information</h2>
+
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label asp-for="Role">Role <span class="required">*</span></label>
+                                    <select asp-for="Role" class="form-select" required id="role-select">
+                                        <option value="">Select User Role</option>
+                                        @foreach (var role in Model.AvailableRoles)
+                                        {
+                                            <option value="@role">@role</option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="Role" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="Status">Status <span class="required">*</span></label>
+                                    <select asp-for="Status" class="form-select" required>
+                                        <option value="Active">Active</option>
+                                        <option value="Inactive">Inactive</option>
+                                        <option value="Pending">Pending Approval</option>
+                                    </select>
+                                    <span asp-validation-for="Status" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="Password">Password <span class="required">*</span></label>
+                                    <div class="password-input-wrapper">
+                                        <input type="password" asp-for="Password" class="form-control" required id="password-input" />
+                                        <button type="button" class="toggle-password" id="toggle-password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <span asp-validation-for="Password" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="ConfirmPassword">Confirm Password <span class="required">*</span></label>
+                                    <div class="password-input-wrapper">
+                                        <input type="password" asp-for="ConfirmPassword" class="form-control" required id="confirm-password-input" />
+                                        <button type="button" class="toggle-password" id="toggle-confirm-password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" asp-for="ForcePasswordChange" class="form-check-input" id="force-change-check" />
+                                        <label asp-for="ForcePasswordChange">Force password change on first login</label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" asp-for="SendCredentials" class="form-check-input" id="send-credentials-check" />
+                                        <label asp-for="SendCredentials">Send account credentials via email</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Staff-specific Fields -->
+                        <div class="form-section staff-fields">
+                            <h2 class="section-title"><i class="fas fa-id-card"></i> Staff Information</h2>
+
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label asp-for="Department">Department</label>
+                                    <select asp-for="Department" class="form-select">
+                                        <option value="">Select Department</option>
+                                        <option value="Management">Management</option>
+                                        <option value="Maintenance">Maintenance</option>
+                                        <option value="Security">Security</option>
+                                        <option value="Landscaping">Landscaping</option>
+                                        <option value="Administrative">Administrative</option>
+                                    </select>
+                                    <span asp-validation-for="Department" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="Position">Position</label>
+                                    <input asp-for="Position" class="form-control" />
+                                    <span asp-validation-for="Position" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="EmployeeId">Employee ID</label>
+                                    <input asp-for="EmployeeId" class="form-control" />
+                                    <span asp-validation-for="EmployeeId" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Homeowner-specific Fields -->
+                        <div class="form-section homeowner-fields">
+                            <h2 class="section-title"><i class="fas fa-file-contract"></i> Homeowner Information</h2>
+
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label asp-for="MoveInDate">Move-in Date</label>
+                                    <input type="date" asp-for="MoveInDate" class="form-control" />
+                                    <span asp-validation-for="MoveInDate" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Property Documents</label>
+                                    <div class="file-upload-container">
+                                        <label for="PropertyDocuments" class="file-upload-label">
+                                            <i class="fas fa-cloud-upload-alt"></i> Upload Documents
+                                        </label>
+                                        <input type="file" id="PropertyDocuments" name="PropertyDocuments" class="file-upload" multiple />
+                                        <span id="property-docs-count">No files chosen</span>
+                                    </div>
+                                    <small class="form-text">Upload deed, lease agreement, or other property documents</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="EmergencyContactName">Emergency Contact Name</label>
+                                    <input asp-for="EmergencyContactName" class="form-control" />
+                                    <span asp-validation-for="EmergencyContactName" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="EmergencyContactPhone">Emergency Contact Phone</label>
+                                    <input asp-for="EmergencyContactPhone" class="form-control" />
+                                    <span asp-validation-for="EmergencyContactPhone" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="VehicleInfo">Vehicle Information</label>
+                                    <textarea asp-for="VehicleInfo" class="form-control" rows="2" placeholder="Make, Model, Year, License Plate"></textarea>
+                                    <span asp-validation-for="VehicleInfo" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="ResidentCount">Number of Residents</label>
+                                    <input type="number" asp-for="ResidentCount" class="form-control" min="1" value="1" />
+                                    <span asp-validation-for="ResidentCount" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Settings -->
+                        <div class="form-section">
+                            <h2 class="section-title"><i class="fas fa-cog"></i> Additional Settings</h2>
+
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" asp-for="ReceiveNotifications" class="form-check-input" checked />
+                                        <label asp-for="ReceiveNotifications">Receive email notifications</label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" asp-for="ReceiveSMS" class="form-check-input" />
+                                        <label asp-for="ReceiveSMS">Receive SMS notifications</label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="Notes">Additional Notes</label>
+                                    <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+                                    <span asp-validation-for="Notes" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <a href="/Dashboard/UserManagement" class="btn secondary-btn">Cancel</a>
+                            <button type="submit" class="btn primary-btn">
+                                <i class="fas fa-save"></i> Save User
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="main-footer">
+                <div class="footer-content">
+                    <p>&copy; @DateTime.Now.Year Green Meadows Subdivision. All rights reserved.</p>
+                    <div class="footer-links">
+                        <a href="/Help">Help Center</a>
+                        <a href="/Privacy">Privacy Policy</a>
+                        <a href="/Terms">Terms of Service</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- JavaScript inclusion -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // User dropdown toggle
+            const userDropdown = document.querySelector('.user-dropdown');
+            if (userDropdown) {
+                userDropdown.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    this.classList.toggle('open');
+                    const dropdownMenu = this.querySelector('.dropdown-menu');
+                    if (dropdownMenu) {
+                        dropdownMenu.classList.toggle('show');
+                    }
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!userDropdown.contains(event.target)) {
+                        userDropdown.classList.remove('open');
+                        const dropdownMenu = userDropdown.querySelector('.dropdown-menu');
+                        if (dropdownMenu) {
+                            dropdownMenu.classList.remove('show');
+                        }
+                    }
+                });
+            }
+
+            // Toggle password visibility
+            const togglePasswordBtns = document.querySelectorAll('.toggle-password');
+            if (togglePasswordBtns.length > 0) {
+                togglePasswordBtns.forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        const passwordInput = this.previousElementSibling;
+                        const passwordIcon = this.querySelector('i');
+
+                        if (passwordInput.getAttribute('type') === 'password') {
+                            passwordInput.setAttribute('type', 'text');
+                            passwordIcon.classList.remove('fa-eye');
+                            passwordIcon.classList.add('fa-eye-slash');
+                        } else {
+                            passwordInput.setAttribute('type', 'password');
+                            passwordIcon.classList.remove('fa-eye-slash');
+                            passwordIcon.classList.add('fa-eye');
+                        }
+                    });
+                });
+            }
+
+            // File upload handling for profile image
+            const profileImageInput = document.getElementById('ProfileImage');
+            const fileNameDisplay = document.getElementById('file-name');
+
+            if (profileImageInput && fileNameDisplay) {
+                profileImageInput.addEventListener('change', function() {
+                    const fileName = this.files[0] ? this.files[0].name : 'No file chosen';
+                    fileNameDisplay.textContent = fileName;
+                });
+            }
+
+            // File upload handling for property documents
+            const propertyDocsInput = document.getElementById('PropertyDocuments');
+            const propertyDocsCount = document.getElementById('property-docs-count');
+
+            if (propertyDocsInput && propertyDocsCount) {
+                propertyDocsInput.addEventListener('change', function() {
+                    const fileCount = this.files.length;
+                    if (fileCount > 0) {
+                        propertyDocsCount.textContent = fileCount + ' file(s) selected';
+                    } else {
+                        propertyDocsCount.textContent = 'No files chosen';
+                    }
+                });
+            }
+
+            // Show/hide role-specific fields based on selection
+            const roleSelect = document.getElementById('role-select');
+
+            function toggleRoleFields() {
+                const selectedRole = roleSelect.value;
+                const staffFields = document.querySelector('.staff-fields');
+                const homeownerFields = document.querySelector('.homeowner-fields');
+
+                if (selectedRole === 'Staff') {
+                    staffFields.style.display = 'block';
+                    homeownerFields.style.display = 'none';
+                } else if (selectedRole === 'Homeowner') {
+                    staffFields.style.display = 'none';
+                    homeownerFields.style.display = 'block';
+                } else {
+                    staffFields.style.display = 'none';
+                    homeownerFields.style.display = 'none';
+                }
+            }
+
+            // Initial call to set fields
+            if (roleSelect) {
+                toggleRoleFields();
+                roleSelect.addEventListener('change', toggleRoleFields);
+            }
+
+            // Close alert buttons
+            const closeAlertBtns = document.querySelectorAll('.close-alert');
+            if (closeAlertBtns.length > 0) {
+                closeAlertBtns.forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        const alert = this.closest('.alert');
+                        if (alert) {
+                            alert.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
+            // Mobile sidebar toggle
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                });
+            }
+
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function() {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(function(alert) {
+                    alert.style.display = 'none';
+                });
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

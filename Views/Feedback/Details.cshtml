@@ -1,0 +1,282 @@
+﻿@model GreenMeadowsPortal.ViewModels.FeedbackDetailsViewModel
+@{
+    ViewData["Title"] = "Feedback Details";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/feedback.css">
+}
+
+<div class="page-header">
+    <div>
+        <h1>Feedback Details</h1>
+        <nav class="breadcrumb">
+            <a asp-action="Index">Feedback</a> <span> / FB-@Model.Id</span>
+        </nav>
+    </div>
+    <div>
+        @if (Model.CanRespond && Model.Status == FeedbackStatus.New)
+        {
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#resolveModal">
+                <i class="fas fa-check"></i> Resolve Feedback
+            </button>
+        }
+        @if (Model.CanEdit)
+        {
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+        }
+        @if (Model.CanDelete)
+        {
+            <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline"
+                  onsubmit="return confirm('Are you sure you want to delete this feedback?');">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash-alt"></i> Delete
+                </button>
+            </form>
+        }
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+        <button class="close-alert"><i class="fas fa-times"></i></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-error">
+        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+        <button class="close-alert"><i class="fas fa-times"></i></button>
+    </div>
+}
+
+<div class="feedback-detail">
+    <div class="feedback-header">
+        <div class="feedback-meta">
+            <div class="d-flex align-items-start justify-content-between">
+                <div>
+                    <h1>@Model.Subject</h1>
+                    <div class="d-flex align-items-center gap-3 mt-2">
+                        <span class="type-badge">@Model.Type</span>
+                        <span class="status-badge @Model.StatusColor">@Model.StatusText</span>
+                        <span class="priority-indicator priority-@Model.Priority.ToString().ToLower()"></span>
+                        <span>@Model.Priority Priority</span>
+                        @if (!string.IsNullOrEmpty(Model.Category))
+                        {
+                            <span class="text-muted">| @Model.Category</span>
+                        }
+                    </div>
+                </div>
+                <div class="text-end">
+                    <small class="text-muted">Feedback #FB-@Model.Id</small>
+                    <div class="text-muted mt-1">
+                        <i class="fas fa-eye"></i> @Model.ViewCount views
+                    </div>
+                </div>
+            </div>
+
+            <div class="feedback-user">
+                <div class="user-avatar">
+                    <img src="@Model.SubmittedByAvatar" alt="@Model.SubmittedBy">
+                </div>
+                <div class="user-info">
+                    <h4>@Model.SubmittedBy</h4>
+                    <p>
+                        Submitted on @Model.SubmittedDate.ToString("MMMM dd, yyyy 'at' h:mm tt")
+                        @if (Model.Role == "Admin" || Model.Role == "Staff")
+                        {
+                            <span class="text-muted">| @Model.SubmittedByEmail</span>
+                        }
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="feedback-content">
+        <div class="content-block">
+            <h3>Description</h3>
+            <p>@Html.Raw(Model.Description.Replace("\n", "<br>"))</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.AdminResponse))
+        {
+            <div class="content-block">
+                <h3>Response</h3>
+                <div class="admin-response">
+                    <p>@Html.Raw(Model.AdminResponse.Replace("\n", "<br>"))</p>
+                    <div class="mt-3 text-end">
+                        <small class="text-muted">
+                            <i class="fas fa-user"></i> @Model.ResolvedBy
+                            on @Model.ResolvedDate?.ToString("MMMM dd, yyyy 'at' h:mm tt")
+                        </small>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (Model.CanRespond && Model.Status == FeedbackStatus.New)
+        {
+            <div class="response-form">
+                <h3>Add Response</h3>
+                <form asp-action="Resolve" asp-route-id="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="form-group">
+                        <label for="adminResponse">Your Response:</label>
+                        <textarea class="form-control" id="adminResponse" name="adminResponse" rows="4" required
+                                  placeholder="Provide your response to this feedback..."></textarea>
+                        <div class="form-help">
+                            This response will be visible to the user and will mark this feedback as resolved.
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Resolve Feedback
+                        </button>
+                    </div>
+                </form>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Additional Information Panel -->
+<div class="mt-4">
+    <div class="feedback-form">
+        <h3 class="mb-3">Additional Information</h3>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="info-item">
+                    <label>Feedback ID:</label>
+                    <span>FB-@Model.Id</span>
+                </div>
+                <div class="info-item">
+                    <label>Submitted:</label>
+                    <span>@Model.SubmittedDate.ToString("MMMM dd, yyyy 'at' h:mm tt")</span>
+                </div>
+                @if (Model.ResolvedDate.HasValue)
+                {
+                    <div class="info-item">
+                        <label>Resolved:</label>
+                        <span>@Model.ResolvedDate.Value.ToString("MMMM dd, yyyy 'at' h:mm tt")</span>
+                    </div>
+                }
+            </div>
+            <div class="col-md-6">
+                <div class="info-item">
+                    <label>Type:</label>
+                    <span>@Model.Type</span>
+                </div>
+                <div class="info-item">
+                    <label>Category:</label>
+                    <span>@(string.IsNullOrEmpty(Model.Category) ? "None" : Model.Category)</span>
+                </div>
+                <div class="info-item">
+                    <label>Priority:</label>
+                    <span>
+                        <span class="priority-indicator priority-@Model.Priority.ToString().ToLower()"></span>
+                        @Model.Priority
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.IsOwnSubmission)
+        {
+            <div class="mt-4 p-3 bg-light rounded">
+                <h5><i class="fas fa-info-circle text-info"></i> What to Expect</h5>
+                <ul class="mb-0">
+                    <li>You'll receive email notifications about updates to your feedback</li>
+                    <li>Response times vary based on feedback type and priority</li>
+                    <li>You can update or delete your feedback until it's resolved</li>
+                    <li>All communications are kept confidential</li>
+                </ul>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Resolve Modal -->
+<div class="modal fade" id="resolveModal" tabindex="-1" aria-labelledby="resolveModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resolveModalLabel">Resolve Feedback</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="Resolve" asp-route-id="@Model.Id" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <strong>Subject:</strong> @Model.Subject
+                    </div>
+                    <div class="form-group">
+                        <label for="adminResponseModal">Your Response:</label>
+                        <textarea class="form-control" id="adminResponseModal" name="adminResponse" rows="4" required
+                                  placeholder="Provide your response to this feedback..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check"></i> Resolve Feedback
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-hide alerts
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                const closeBtn = alert.querySelector('.close-alert');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function() {
+                        alert.style.display = 'none';
+                    });
+                }
+
+                setTimeout(function() {
+                    alert.style.display = 'none';
+                }, 5000);
+            });
+
+            // Auto-expand textarea
+            const textareas = document.querySelectorAll('textarea');
+            textareas.forEach(function(textarea) {
+                textarea.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = this.scrollHeight + 'px';
+                });
+            });
+        });
+    </script>
+}
+
+<style>
+    .info-item {
+        display: flex;
+        margin-bottom: 0.5rem;
+    }
+
+        .info-item label {
+            font-weight: 600;
+            min-width: 100px;
+            color: var(--text-medium);
+        }
+
+        .info-item span {
+            color: var(--text-dark);
+        }
+</style>

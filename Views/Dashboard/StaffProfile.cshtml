@@ -1,0 +1,479 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@model GreenMeadowsPortal.ViewModels.StaffProfileViewModel
+@{
+    ViewData["Title"] = "My Profile - Green Meadows Portal";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Meadows | Staff Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/staffprofile.css" />
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar Navigation -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Green Meadows</h3>
+                <div class="sidebar-logo">GM</div>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <img src="@Model.ProfileImageUrl" alt="Staff Avatar">
+                </div>
+                <div class="user-info">
+                    <h4>@Model.FullName</h4>
+                    <p>@Model.Role</p>
+                </div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li>
+                <a asp-controller="Dashboard" asp-action="StaffDashboard"><i class="fas fa-home"></i> Dashboard</a>
+                </li>
+                <li>
+                    <a href="/Staff/Announcements"><i class="fas fa-bullhorn"></i> Announcements</a>
+                </li>
+                <li>
+                    <a href="/Staff/Billing"><i class="fas fa-file-invoice-dollar"></i> Billing</a>
+                </li>
+                <li>
+                    <a href="/Staff/Facilities"><i class="fas fa-swimming-pool"></i> Facilities</a>
+                </li>
+                <li>
+                    <a href="/Staff/ServiceRequests"><i class="fas fa-tools"></i> Service Requests</a>
+                </li>
+                <li>
+                    <a href="/Staff/Documents"><i class="fas fa-file-alt"></i> Documents</a>
+                </li>
+                <li>
+                    <a href="/Staff/Forum"><i class="fas fa-comments"></i> Community Forum</a>
+                </li>
+                <li>
+                    <a href="/Staff/Security"><i class="fas fa-shield-alt"></i> Security</a>
+                </li>
+                <li>
+                    <a href="/Staff/Events"><i class="fas fa-calendar-alt"></i> Events</a>
+                </li>
+                <li>
+                    <a href="/Staff/Reports"><i class="fas fa-chart-bar"></i> Reports</a>
+                </li>
+                <li>
+                    <a href="/Staff/Polls"><i class="fas fa-poll"></i> Polls & Surveys</a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="/Staff/Settings"><i class="fas fa-cog"></i> Settings</a>
+                <form asp-controller="Account" asp-action="Logout" method="post" id="logoutForm">
+                    @Html.AntiForgeryToken()
+                    <a href="javascript:document.getElementById('logoutForm').submit()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </form>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <!-- Top Navigation -->
+            <header class="top-navbar">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="search-bar">
+                    <input type="text" placeholder="Search users, requests, bills...">
+                    <button><i class="fas fa-search"></i></button>
+                </div>
+
+                <div class="navbar-right">
+                    <div class="notification-bell">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-count">@Model.NotificationCount</span>
+                    </div>
+                    <div class="inbox-icon">
+                        <a asp-controller="Contact" asp-action="Inbox">
+                            <i class="fas fa-envelope"></i>
+                            <span class="unread-messages" id="unread-message-count">0</span>
+                        </a>
+                    </div>
+                    <div class="user-dropdown">
+                        <img src="@Model.ProfileImageUrl" alt="Staff Avatar">
+                        <span>@Model.FullName</span>
+                        <i class="fas fa-chevron-down"></i>
+
+                        <div class="dropdown-menu">
+                            <a href="/Staff/Profile"><i class="fas fa-user"></i> My Profile</a>
+                            <a href="/Staff/Settings"><i class="fas fa-cog"></i> Settings</a>
+                            <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i>Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="main-content">
+                <div class="page-header">
+                    <h1>My Profile</h1>
+                    <nav class="breadcrumb">
+                        <a href="/Staff/Dashboard">Home</a> / My Profile
+                    </nav>
+                </div>
+
+                <!-- Display any messages -->
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success">
+                        @TempData["SuccessMessage"]
+                    </div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger">
+                        @TempData["ErrorMessage"]
+                    </div>
+                }
+                @if (TempData["InfoMessage"] != null)
+                {
+                    <div class="alert alert-info">
+                        @TempData["InfoMessage"]
+                    </div>
+                }
+
+                <!-- Profile Content -->
+                <div class="content-row">
+                    <!-- Profile Info -->
+                    <div class="content-section half">
+                        <div class="section-header">
+                            <h2>Profile Information</h2>
+                            <a href="#" class="edit-btn" id="edit-profile-btn"><i class="fas fa-edit"></i> Edit</a>
+                        </div>
+
+                        <div class="profile-section">
+                            <div class="profile-photo">
+                                <img id="profile-img-preview" src="@Model.ProfileImageUrl" alt="Staff Avatar">
+                            </div>
+
+                            <div class="profile-info-form">
+                                <form asp-controller="Staff" asp-action="UpdateProfile" method="post" enctype="multipart/form-data" id="profileForm">
+                                    @Html.AntiForgeryToken()
+
+                                    <div class="form-group" id="profile-image-upload-container" style="display: none;">
+                                        <label class="form-label">Profile Image</label>
+                                        <input type="file" asp-for="ProfileImage" class="form-control" id="profile-img-upload" accept=".jpg,.jpeg,.png">
+                                        <span class="text-muted">Accepted formats: JPG, JPEG, PNG</span>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Full Name</label>
+                                        <input type="text" asp-for="FullName" class="form-control" readonly>
+                                    </div>
+
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label class="form-label">Email</label>
+                                            <input type="email" asp-for="Email" class="form-control" readonly>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="form-label">Phone Number</label>
+                                            <input type="tel" asp-for="PhoneNumber" class="form-control" readonly>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Department</label>
+                                        <input type="text" asp-for="Department" class="form-control" readonly>
+                                    </div>
+
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label class="form-label">Employee ID</label>
+                                            <input type="text" asp-for="EmployeeId" class="form-control" readonly>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="form-label">Position</label>
+                                            <input type="text" asp-for="Position" class="form-control" readonly>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label class="form-label">Hire Date</label>
+                                            <input type="text" asp-for="HireDate" class="form-control" readonly>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="form-label">Status</label>
+                                            <input type="text" asp-for="Status" class="form-control" readonly>
+                                        </div>
+                                    </div>
+
+                                    <!-- Hidden field to maintain ProfileImageUrl across form submissions -->
+                                    <input type="hidden" asp-for="ProfileImageUrl" />
+                                    <input type="hidden" asp-for="Role" />
+                                    <input type="hidden" asp-for="Status" />
+                                    <input type="hidden" asp-for="HireDate" />
+                                    <input type="hidden" asp-for="EmployeeId" />
+                                    <input type="hidden" asp-for="Position" />
+                                    <input type="hidden" asp-for="Department" />
+
+                                    <div class="form-actions" style="display: none;" id="profile-form-actions">
+                                        <button type="submit" class="btn primary-btn">Save Changes</button>
+                                        <button type="button" class="btn secondary-btn" id="cancel-profile-btn">Cancel</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Emergency Contacts -->
+                    <div class="content-section half">
+                        <div class="section-header">
+                            <h2>Emergency Contacts</h2>
+                            <a href="#" class="edit-btn" id="edit-contacts-btn"><i class="fas fa-edit"></i> Edit</a>
+                        </div>
+
+                        <div class="emergency-contacts">
+                            <div class="contact-card">
+                                <div class="contact-header">
+                                    <h3>Primary Contact</h3>
+                                </div>
+                                <div class="contact-details">
+                                    <p><strong>Name:</strong> @Model.PrimaryContactName</p>
+                                    <p><strong>Relationship:</strong> @Model.PrimaryContactRelationship</p>
+                                    <p><strong>Phone:</strong> @Model.PrimaryContactPhone</p>
+                                    <p><strong>Email:</strong> @Model.PrimaryContactEmail</p>
+                                </div>
+                            </div>
+
+                            <div class="contact-card">
+                                <div class="contact-header">
+                                    <h3>Secondary Contact</h3>
+                                </div>
+                                <div class="contact-details">
+                                    <p><strong>Name:</strong> @Model.SecondaryContactName</p>
+                                    <p><strong>Relationship:</strong> @Model.SecondaryContactRelationship</p>
+                                    <p><strong>Phone:</strong> @Model.SecondaryContactPhone</p>
+                                    <p><strong>Email:</strong> @Model.SecondaryContactEmail</p>
+                                </div>
+                            </div>
+
+                            <div class="form-actions contact-form-actions" style="display: none;" id="contacts-form-actions">
+                                <button type="button" class="btn primary-btn" id="save-contacts-btn">Save Changes</button>
+                                <button type="button" class="btn secondary-btn" id="cancel-contacts-btn">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Staff Skills Section -->
+                <div class="content-section">
+                    <div class="section-header">
+                        <h2>Skills & Certifications</h2>
+                        <a href="#" class="edit-btn" id="add-skill-btn"><i class="fas fa-plus"></i> Add Skill</a>
+                    </div>
+
+                    <div class="skills-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Skill/Certification</th>
+                                    <th>Type</th>
+                                    <th>Level/Grade</th>
+                                    <th>Acquired Date</th>
+                                    <th>Expiry Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var skill in Model.Skills)
+                                {
+                                    <tr>
+                                        <td>@skill.Name</td>
+                                        <td>@skill.Type</td>
+                                        <td>@skill.Level</td>
+                                        <td>@skill.AcquiredDate.ToString("MMM dd, yyyy")</td>
+                                        <td>@(skill.ExpiryDate.HasValue ? skill.ExpiryDate.Value.ToString("MMM dd, yyyy") : "N/A")</td>
+                                        <td><span class="status in-progress">@skill.Status</span></td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <a href="#" class="btn-icon edit-icon"><i class="fas fa-edit"></i></a>
+                                                <a href="#" class="btn-icon delete-icon"><i class="fas fa-trash-alt"></i></a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Work Schedule Section -->
+                <div class="content-section">
+                    <div class="section-header">
+                        <h2>Work Schedule</h2>
+                    </div>
+
+                    <div class="schedule-container">
+                        <div class="schedule-grid">
+                            <div class="schedule-day">
+                                <h3>Monday</h3>
+                                <p>@Model.Schedule.Monday</p>
+                            </div>
+                            <div class="schedule-day">
+                                <h3>Tuesday</h3>
+                                <p>@Model.Schedule.Tuesday</p>
+                            </div>
+                            <div class="schedule-day">
+                                <h3>Wednesday</h3>
+                                <p>@Model.Schedule.Wednesday</p>
+                            </div>
+                            <div class="schedule-day">
+                                <h3>Thursday</h3>
+                                <p>@Model.Schedule.Thursday</p>
+                            </div>
+                            <div class="schedule-day">
+                                <h3>Friday</h3>
+                                <p>@Model.Schedule.Friday</p>
+                            </div>
+                            <div class="schedule-day">
+                                <h3>Saturday</h3>
+                                <p>@Model.Schedule.Saturday</p>
+                            </div>
+                            <div class="schedule-day">
+                                <h3>Sunday</h3>
+                                <p>@Model.Schedule.Sunday</p>
+                            </div>
+                        </div>
+                        <div class="schedule-notes">
+                            <h3>Notes:</h3>
+                            <p>@Model.Schedule.Notes</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="main-footer">
+                <div class="footer-content">
+                    <p>&copy; 2025 Green Meadows Subdivision. All rights reserved.</p>
+                    <div class="footer-links">
+                        <a href="#">Privacy Policy</a>
+                        <a href="#">Terms of Service</a>
+                        <a href="#">Contact Us</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Profile edit functionality
+            document.getElementById("edit-profile-btn").addEventListener("click", function(e) {
+                e.preventDefault();
+                // Show the file upload input
+                document.getElementById("profile-image-upload-container").style.display = "block";
+
+                // Make form fields editable
+                const editableFields = ["FullName", "PhoneNumber"];
+                editableFields.forEach(field => {
+                    const inputElement = document.querySelector(`[name="${field}"]`);
+                    if (inputElement) {
+                        inputElement.removeAttribute("readonly");
+                    }
+                });
+
+                // Show form action buttons
+                document.getElementById("profile-form-actions").style.display = "block";
+            });
+
+            // Cancel button functionality
+            document.getElementById("cancel-profile-btn").addEventListener("click", function(e) {
+                e.preventDefault();
+
+                // Hide the file upload input
+                document.getElementById("profile-image-upload-container").style.display = "none";
+
+                // Reset form fields to original state
+                document.getElementById("profileForm").reset();
+
+                // Make form fields readonly again
+                const editableFields = ["FullName", "PhoneNumber"];
+                editableFields.forEach(field => {
+                    const inputElement = document.querySelector(`[name="${field}"]`);
+                    if (inputElement) {
+                        inputElement.setAttribute("readonly", "readonly");
+                    }
+                });
+
+                // Reset profile image preview
+                document.getElementById("profile-img-preview").src = "@Model.ProfileImageUrl";
+
+                // Hide form action buttons
+                document.getElementById("profile-form-actions").style.display = "none";
+            });
+
+            // Profile image preview functionality
+            document.getElementById("profile-img-upload").addEventListener("change", function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById("profile-img-preview").src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Emergency contacts edit functionality (for demonstration only)
+            document.getElementById("edit-contacts-btn").addEventListener("click", function(e) {
+                e.preventDefault();
+                document.getElementById("contacts-form-actions").style.display = "block";
+            });
+
+            document.getElementById("cancel-contacts-btn").addEventListener("click", function(e) {
+                e.preventDefault();
+                document.getElementById("contacts-form-actions").style.display = "none";
+            });
+
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function() {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    alert.style.display = 'none';
+                });
+            }, 5000);
+
+            // User dropdown functionality
+            document.querySelectorAll('.user-dropdown').forEach(function (dropdown) {
+                dropdown.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    this.classList.toggle('open');
+                });
+            });
+
+            document.addEventListener('click', function (event) {
+                document.querySelectorAll('.user-dropdown.open').forEach(function (dropdown) {
+                    if (!dropdown.contains(event.target)) {
+                        dropdown.classList.remove('open');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@model DocumentLibraryViewModel
+
+@{
+    ViewData["Title"] = "Documents - Green Meadows Portal";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+}
+
+<div class="page-header">
+    <h1>Document Library</h1>
+    <div class="action-buttons">
+        @if (Model.CurrentUserRole == "Admin" || Model.CurrentUserRole == "Staff")
+        {
+            <a asp-controller="Document" asp-action="Upload" class="primary-btn">
+                <i class="fas fa-upload"></i> Upload Document
+            </a>
+        }
+    </div>
+</div>
+
+<!-- Filter Controls -->
+<div class="filter-controls">
+    <div class="filter-group">
+        <label for="filter-category">Category:</label>
+        <select id="filter-category" onchange="filterDocuments()">
+            <option value="all" selected>All Categories</option>
+            @foreach (var category in Model.DocumentCategories)
+            {
+                <option value="@category.Name.ToLower().Replace(" ", "-")">@category.Name</option>
+            }
+        </select>
+    </div>
+
+    <div class="search-bar">
+        <input type="text" id="document-search" placeholder="Search documents..." oninput="filterDocuments()">
+        <button><i class="fas fa-search"></i></button>
+    </div>
+</div>
+
+<!-- Document Categories -->
+<div class="document-categories">
+    @foreach (var category in Model.DocumentCategories)
+    {
+        <div class="document-category" id="category-@(category.Name.ToLower().Replace(" ", "-"))">
+            <div class="category-header">
+                <div class="category-icon">
+                    <i class="fas @category.Icon"></i>
+                </div>
+                <div class="category-details">
+                    <h2>@category.Name</h2>
+                    <p>@category.Description</p>
+                </div>
+            </div>
+
+            @if (category.Documents.Count == 0)
+            {
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <h3>No Documents</h3>
+                    <p>There are no documents in this category.</p>
+
+                    @if (Model.CurrentUserRole == "Admin" || Model.CurrentUserRole == "Staff")
+                    {
+                        <a asp-controller="Document" asp-action="Upload" class="primary-btn" style="margin-top: 1rem;">
+                            <i class="fas fa-upload"></i> Upload Document
+                        </a>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="documents-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Size</th>
+                                <th>Uploaded</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var doc in category.Documents)
+                            {
+                                <tr class="document-row" data-name="@doc.Name.ToLower()">
+                                    <td>
+                                        <div class="document-name">
+                                            <span class="document-icon">
+                                                @{
+                                                    string iconClass = doc.FileType.ToLower() switch
+                                                    {
+                                                        "pdf" => "fa-file-pdf",
+                                                        "doc" or "docx" => "fa-file-word",
+                                                        "xls" or "xlsx" => "fa-file-excel",
+                                                        "ppt" or "pptx" => "fa-file-powerpoint",
+                                                        "jpg" or "jpeg" or "png" or "gif" => "fa-file-image",
+                                                        "zip" or "rar" => "fa-file-archive",
+                                                        "txt" => "fa-file-alt",
+                                                        _ => "fa-file"
+                                                    };
+                                                }
+                                                <i class="fas @iconClass"></i>
+                                            </span>
+                                            @doc.Name
+                                        </div>
+                                    </td>
+                                    <td>@doc.FileType</td>
+                                    <td>@doc.FileSize</td>
+                                    <td>@doc.UploadDate.ToString("MMM dd, yyyy")</td>
+                                    <td class="action-buttons">
+                                        <a asp-controller="Document" asp-action="Download" asp-route-category="@category.Name.ToLower().Replace(" ", "-")" asp-route-fileName="@System.IO.Path.GetFileName(doc.FileUrl)" class="btn small-btn" title="Download">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+
+                                        @if (Model.CurrentUserRole == "Admin")
+                                        {
+                                            <a asp-controller="Document" asp-action="Delete" asp-route-category="@category.Name.ToLower().Replace(" ", "-")" asp-route-fileName="@System.IO.Path.GetFileName(doc.FileUrl)" class="btn small-btn danger" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function filterDocuments() {
+            const categoryFilter = document.getElementById('filter-category').value;
+            const searchFilter = document.getElementById('document-search').value.toLowerCase();
+
+            // Show/hide categories based on filter
+            const categories = document.querySelectorAll('.document-category');
+            categories.forEach(category => {
+                const categoryId = category.id.replace('category-', '');
+                const showCategory = categoryFilter === 'all' || categoryId === categoryFilter;
+
+                if (showCategory) {
+                    category.style.display = 'block';
+
+                    // Filter documents within this category based on search
+                    const documents = category.querySelectorAll('.document-row');
+                    let hasVisibleDocuments = false;
+
+                    documents.forEach(doc => {
+                        const docName = doc.getAttribute('data-name');
+                        const showDocument = docName.includes(searchFilter);
+                        doc.style.display = showDocument ? 'table-row' : 'none';
+
+                        if (showDocument) {
+                            hasVisibleDocuments = true;
+                        }
+                    });
+
+                    // Show empty state if no documents match the search
+                    const emptyState = category.querySelector('.empty-state');
+                    const documentsTable = category.querySelector('.documents-table');
+
+                    if (documents.length > 0) {
+                        if (hasVisibleDocuments) {
+                            if (emptyState) emptyState.style.display = 'none';
+                            if (documentsTable) documentsTable.style.display = 'block';
+                        } else {
+                            if (documentsTable) documentsTable.style.display = 'none';
+
+                            if (!emptyState) {
+                                const newEmptyState = document.createElement('div');
+                                newEmptyState.className = 'empty-state';
+                                newEmptyState.innerHTML = `
+                                    <div class="empty-icon">
+                                        <i class="fas fa-search"></i>
+                                    </div>
+                                    <h3>No Matching Documents</h3>
+                                    <p>No documents match your search criteria.</p>
+                                `;
+                                category.appendChild(newEmptyState);
+                            } else {
+                                emptyState.style.display = 'flex';
+                            }
+                        }
+                    }
+                } else {
+                    category.style.display = 'none';
+                }
+            });
+        }
+    </script>
+}

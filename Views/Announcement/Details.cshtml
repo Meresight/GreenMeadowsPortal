@@ -1,0 +1,391 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@using GreenMeadowsPortal.Models
+@model AnnouncementDetailsViewModel
+
+@{
+    ViewData["Title"] = "Announcement Details - Green Meadows Portal";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Meadows | Announcement Details</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/admin.css">
+    <link rel="stylesheet" href="~/css/announcement-details.css">
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar Navigation -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Green Meadows</h3>
+                <div class="sidebar-logo">GM</div>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <img src="/images/default-avatar.png" alt="User Avatar" id="user-avatar">
+                </div>
+                <div class="user-info">
+                    <h4 id="user-name">Loading...</h4>
+                    <p id="user-role">Loading...</p>
+                </div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li><a href="/Dashboard" id="dashboard-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a asp-controller="Dashboard" asp-action="UserManagement"><i class="fas fa-users"></i> User Management</a></li>
+
+                <li class="active"><a asp-controller="Announcement" asp-action="Index"><i class="fas fa-bullhorn"></i> Announcements</a></li>
+                <li id="billing-menu-item"><a asp-controller="Dashboard" asp-action="Billing"><i class="fas fa-file-invoice-dollar"></i> Billing</a></li>
+                <li><a href="/Facilities"><i class="fas fa-swimming-pool"></i> Facilities</a></li>
+                <li><a href="/ServiceRequests"><i class="fas fa-tools"></i> Service Requests</a></li>
+                <li><a href="/Documents"><i class="fas fa-file-alt"></i> Documents</a></li>
+                <li><a href="/Forum"><i class="fas fa-comments"></i> Community Forum</a></li>
+                <li><a href="/Security"><i class="fas fa-shield-alt"></i> Security</a></li>
+                <li><a href="/Events"><i class="fas fa-calendar-alt"></i> Events</a></li>
+                <li><a href="/Feedback"><i class="fas fa-comment-dots"></i> Feedback</a></li>
+                <li><a href="/Contacts"><i class="fas fa-address-book"></i> Contacts</a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i>Logout</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <!-- Top Navigation -->
+            <header class="top-navbar">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="back-button">
+                    <a asp-controller="Announcement" asp-action="Index">
+                        <i class="fas fa-arrow-left"></i> Back to Announcements
+                    </a>
+                </div>
+
+                <div class="navbar-right">
+                    <div class="notification-bell">
+                        <a asp-controller="Notification" asp-action="Index">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-count" id="notification-count">0</span>
+                        </a>
+                    </div>
+                    <div class="inbox-icon">
+                        <a asp-controller="Contact" asp-action="Inbox">
+                            <i class="fas fa-envelope"></i>
+                            <span class="unread-messages" id="unread-message-count">0</span>
+                        </a>
+                    </div>
+                    <div class="user-dropdown">
+                        <img src="/images/default-avatar.png" alt="User Avatar" id="nav-user-avatar">
+                        <span id="nav-user-name">Loading...</span>
+                        <i class="fas fa-chevron-down"></i>
+
+                        <div class="dropdown-menu">
+                            <a asp-controller="Account" asp-action="Profile"><i class="fas fa-user"></i> My Profile</a>
+                            <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                            <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i>Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="main-content">
+                <div class="page-header">
+                    <h1>Announcement Details</h1>
+                    <nav class="breadcrumb">
+                        <a id="dashboard-breadcrumb" href="/">Dashboard</a> /
+                        <a asp-controller="Announcement" asp-action="Index">Announcements</a> /
+                        Details
+                    </nav>
+                </div>
+
+                <!-- Announcement Details Card -->
+                <div class="announcement-detail-card">
+                    <div class="announcement-header">
+                        <div class="announcement-meta">
+                            <span class="tag @(Model.Priority == AnnouncementPriority.Urgent ? "urgent" : (Model.Priority == AnnouncementPriority.Important ? "important" : "general"))">
+                                @Model.Priority.ToString()
+                            </span>
+                            <span class="date"><i class="fas fa-calendar"></i> @(Model.PublishDate?.ToString("MMMM dd, yyyy") ?? Model.CreatedDate.ToString("MMMM dd, yyyy"))</span>
+                            <span class="author"><i class="fas fa-user"></i> Posted by: @Model.AuthorName</span>
+                            <span class="read-count"><i class="fas fa-eye"></i> @Model.ReadCount readers</span>
+                        </div>
+
+                        <div class="action-buttons" id="admin-actions" style="display: none;">
+                            <a asp-controller="Announcement" asp-action="Edit" asp-route-id="@Model.Id" class="btn secondary-btn">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <a asp-controller="Announcement" asp-action="Delete" asp-route-id="@Model.Id" class="btn danger-btn">
+                                <i class="fas fa-trash"></i> Delete
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="announcement-content">
+                        <h2>@Model.Title</h2>
+
+                        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                        {
+                            <div class="featured-image">
+                                <img src="@Model.ImageUrl" alt="@Model.Title">
+                            </div>
+                        }
+
+                        <div class="content-body">
+                            @Html.Raw(Model.Content)
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(Model.AttachmentUrl))
+                        {
+                            <div class="attachment">
+                                <h3>Attachment</h3>
+                                <a href="@Model.AttachmentUrl" class="attachment-link" target="_blank">
+                                    <i class="fas fa-paperclip"></i> Download Attachment
+                                </a>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="announcement-footer">
+                        @if (!Model.HasBeenRead)
+                        {
+                            <form asp-action="MarkAsRead" method="post" class="mark-read-form">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@Model.Id" />
+                                <button type="submit" class="btn primary-btn">
+                                    <i class="fas fa-check-circle"></i> Mark as Read
+                                </button>
+                            </form>
+                        }
+
+                        <a asp-controller="Announcement" asp-action="ReadReceipts" asp-route-id="@Model.Id" class="read-receipts-link" id="view-receipts-link" style="display: none;">
+                            <i class="fas fa-list"></i> View Read Receipts
+                        </a>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="main-footer">
+                <div class="footer-content">
+                    <p>&copy; @DateTime.Now.Year Green Meadows Subdivision. All rights reserved.</p>
+                    <div class="footer-links">
+                        <a href="/Privacy">Privacy Policy</a>
+                        <a href="/Terms">Terms of Service</a>
+                        <a href="/Contact">Contact Us</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Variable to store current user data
+        let currentUser = {
+            id: '',
+            name: '',
+            firstName: '',
+            role: '',
+            avatar: '/images/default-avatar.png',
+            notificationCount: 0
+        };
+
+        // Function to fetch current user data
+        async function fetchCurrentUser() {
+            try {
+                const response = await fetch('/api/User/GetCurrentUser');
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = {
+                        id: data.id,
+                        name: data.fullName,
+                        firstName: data.firstName,
+                        role: data.role,
+                        avatar: data.profileImageUrl || '/images/default-avatar.png',
+                        notificationCount: data.notificationCount
+                    };
+
+                    // Update UI with user data
+                    updateUserUI();
+
+                    // Apply role-based permissions
+                    applyRoleBasedPermissions();
+                }
+            } catch (error) {
+                console.error('Failed to fetch user data:', error);
+
+                // Use fallback data
+                currentUser = {
+                    id: 'unknown',
+                    name: 'User',
+                    firstName: 'User',
+                    role: 'Homeowner',
+                    avatar: '/images/default-avatar.png',
+                    notificationCount: 0
+                };
+
+                updateUserUI();
+                applyRoleBasedPermissions();
+            }
+        }
+
+        // Function to update UI elements with user data
+        function updateUserUI() {
+            // Update sidebar user info
+            const userAvatar = document.getElementById('user-avatar');
+            const userName = document.getElementById('user-name');
+            const userRole = document.getElementById('user-role');
+
+            if (userAvatar) userAvatar.src = currentUser.avatar;
+            if (userName) userName.textContent = currentUser.firstName;
+            if (userRole) userRole.textContent = currentUser.role;
+
+            // Update navbar user info
+            const navUserAvatar = document.getElementById('nav-user-avatar');
+            const navUserName = document.getElementById('nav-user-name');
+            const notificationCount = document.getElementById('notification-count');
+
+            if (navUserAvatar) navUserAvatar.src = currentUser.avatar;
+            if (navUserName) navUserName.textContent = currentUser.firstName;
+            if (notificationCount) notificationCount.textContent = currentUser.notificationCount;
+
+            // Update dashboard link based on role
+            const dashboardLink = document.getElementById('dashboard-link');
+            const dashboardBreadcrumb = document.getElementById('dashboard-breadcrumb');
+
+            if (dashboardLink) {
+                if (currentUser.role === 'Admin') {
+                    dashboardLink.href = '/Dashboard/AdminDashboard';
+                } else if (currentUser.role === 'Staff') {
+                    dashboardLink.href = '/Dashboard/StaffDashboard';
+                } else {
+                    dashboardLink.href = '/Dashboard/HomeownerDashboard';
+                }
+            }
+
+            if (dashboardBreadcrumb) {
+                if (currentUser.role === 'Admin') {
+                    dashboardBreadcrumb.href = '/Dashboard/AdminDashboard';
+                } else if (currentUser.role === 'Staff') {
+                    dashboardBreadcrumb.href = '/Dashboard/StaffDashboard';
+                } else {
+                    dashboardBreadcrumb.href = '/Dashboard/HomeownerDashboard';
+                }
+            }
+        }
+
+        // Function to apply role-based permissions
+        function applyRoleBasedPermissions() {
+            // Hide/show admin actions
+            const adminActions = document.getElementById('admin-actions');
+            if (adminActions) {
+                if (currentUser.role === 'Admin') {
+                    adminActions.style.display = 'flex';
+                } else if (currentUser.role === 'Staff') {
+                    // For Staff, check if they're the author
+                    const authorElement = document.querySelector('.author');
+                    if (authorElement && authorElement.textContent.includes(currentUser.name)) {
+                        adminActions.style.display = 'flex';
+                    } else {
+                        adminActions.style.display = 'none';
+                    }
+                } else {
+                    adminActions.style.display = 'none';
+                }
+            }
+
+            // Hide/show read receipts link (only visible to Admin)
+            const viewReceiptsLink = document.getElementById('view-receipts-link');
+            if (viewReceiptsLink) {
+                viewReceiptsLink.style.display = currentUser.role === 'Admin' ? 'inline-block' : 'none';
+            }
+
+            // Hide billing menu item for Staff
+            const billingMenuItem = document.getElementById('billing-menu-item');
+            if (billingMenuItem && currentUser.role === 'Staff') {
+                billingMenuItem.style.display = 'none';
+            }
+        }
+
+        // Start polling for notification updates
+        function startNotificationPolling() {
+            // Poll every 30 seconds
+            setInterval(async function() {
+                try {
+                    const response = await fetch('/api/announcements/unread-count');
+                    if (response.ok) {
+                        const data = await response.json();
+                        const notificationCount = document.getElementById('notification-count');
+                        if (notificationCount) {
+                            notificationCount.textContent = data.count;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error updating notification count:', error);
+                }
+            }, 30000);
+        }
+
+        // User dropdown functionality
+        function setupUserDropdown() {
+            const userDropdown = document.querySelector('.user-dropdown');
+            if (userDropdown) {
+                userDropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const dropdownMenu = this.querySelector('.dropdown-menu');
+                    dropdownMenu.classList.toggle('show');
+                });
+
+                document.addEventListener('click', function(e) {
+                    const dropdownMenu = document.querySelector('.dropdown-menu.show');
+                    if (dropdownMenu && !dropdownMenu.parentElement.contains(e.target)) {
+                        dropdownMenu.classList.remove('show');
+                    }
+                });
+            }
+        }
+
+        // Mobile sidebar toggle
+        function setupSidebarToggle() {
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                });
+            }
+        }
+
+        // Initialize everything when the document is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchCurrentUser();
+            setupUserDropdown();
+            setupSidebarToggle();
+            startNotificationPolling();
+
+            // If there's an error message in the URL, display it
+            const urlParams = new URLSearchParams(window.location.search);
+            const errorMsg = urlParams.get('error');
+            if (errorMsg) {
+                alert('Error: ' + errorMsg);
+            }
+        });
+    </script>
+</body>
+</html>

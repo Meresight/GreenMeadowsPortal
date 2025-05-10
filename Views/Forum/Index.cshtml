@@ -1,0 +1,238 @@
+﻿@using GreenMeadowsPortal.ViewModels
+@model ForumIndexViewModel
+@{
+    ViewData["Title"] = "Community Forum";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+}
+
+<div class="page-header">
+    <h1>Community Forum</h1>
+    <nav class="breadcrumb">
+        <a asp-controller="Dashboard" asp-action="@(Model.Role == "Admin" ? "AdminDashboard" : (Model.Role == "Staff" ? "StaffDashboard" : "HomeownerDashboard"))">Dashboard</a> / Community Forum
+    </nav>
+</div>
+
+<!-- Success/Error Messages -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+        <button class="close-alert"><i class="fas fa-times"></i></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+        <button class="close-alert"><i class="fas fa-times"></i></button>
+    </div>
+}
+
+<!-- Forum Actions -->
+<div class="forum-actions">
+    <div class="forum-search">
+        <form asp-action="Index" method="get" class="search-form">
+            <input type="text" name="search" placeholder="Search topics..." value="@Model.SearchQuery" />
+            <input type="hidden" name="sortBy" value="@Model.SortBy" />
+            <button type="submit" class="btn primary-btn"><i class="fas fa-search"></i> Search</button>
+        </form>
+    </div>
+    <div class="forum-sort">
+        <span>Sort by:</span>
+        <a asp-action="Index" asp-route-sortBy="recent" asp-route-search="@Model.SearchQuery" class="@(Model.SortBy == "recent" ? "active" : "")">Recent</a>
+        <a asp-action="Index" asp-route-sortBy="activity" asp-route-search="@Model.SearchQuery" class="@(Model.SortBy == "activity" ? "active" : "")">Activity</a>
+        <a asp-action="Index" asp-route-sortBy="views" asp-route-search="@Model.SearchQuery" class="@(Model.SortBy == "views" ? "active" : "")">Views</a>
+        <a asp-action="Index" asp-route-sortBy="replies" asp-route-search="@Model.SearchQuery" class="@(Model.SortBy == "replies" ? "active" : "")">Replies</a>
+    </div>
+    <div class="forum-new-topic">
+        <a asp-action="Create" class="btn primary-btn"><i class="fas fa-plus"></i> New Topic</a>
+    </div>
+</div>
+
+<!-- Forum Topics -->
+<div class="content-section">
+    <div class="section-header">
+        <h2>
+            @if (!string.IsNullOrEmpty(Model.SearchQuery))
+            {
+                <span>Search Results for "@Model.SearchQuery"</span>
+            }
+            else
+            {
+                <span>Discussion Topics</span>
+            }
+        </h2>
+        <span class="topic-count">@Model.TotalTopics topics</span>
+    </div>
+
+    @if (Model.Topics.Count == 0)
+    {
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-comments"></i>
+            </div>
+            @if (!string.IsNullOrEmpty(Model.SearchQuery))
+            {
+                <h3>No Search Results</h3>
+                <p>No topics found matching your search query.</p>
+                <a asp-action="Index" class="btn primary-btn mt-4">View All Topics</a>
+            }
+            else
+            {
+                <h3>No Topics Yet</h3>
+                <p>Be the first to start a discussion in our community forum.</p>
+                <a asp-action="Create" class="btn primary-btn mt-4">
+                    <i class="fas fa-plus"></i> Create Topic
+                </a>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="forum-topics-list">
+            @foreach (var topic in Model.Topics)
+            {
+                <form asp-action="Topic" asp-route-id="@topic.Id" method="get" style="margin:0;">
+                    <button type="submit" class="forum-topic-item @(topic.IsPinned ? "pinned" : "") @(topic.IsClosed ? "closed" : "")" style="width:100%;text-align:left;background:none;border:none;padding:0;cursor:pointer;">
+                        <div class="forum-topic-status">
+                            @if (topic.IsPinned)
+                            {
+                                <div class="topic-status-icon pinned" title="Pinned Topic">
+                                    <i class="fas fa-thumbtack"></i>
+                                </div>
+                            }
+                            @if (topic.IsClosed)
+                            {
+                                <div class="topic-status-icon closed" title="Closed Topic">
+                                    <i class="fas fa-lock"></i>
+                                </div>
+                            }
+                        </div>
+                        <div class="forum-topic-avatar">
+                            <img src="@topic.AuthorProfileImage" alt="@topic.AuthorName Avatar">
+                        </div>
+                        <div class="forum-topic-info">
+                            <h3 class="topic-title">
+                                <a asp-action="Topic" asp-route-id="@topic.Id" tabindex="-1">@topic.Title</a>
+                            </h3>
+                            <div class="topic-meta">
+                                <span class="topic-author">
+                                    Started by <strong>@topic.AuthorName</strong> (@topic.AuthorRole)
+                                </span>
+                                <span class="topic-date" title="@topic.CreatedDate.ToString("MMMM dd, yyyy h:mm tt")">
+                                    @GetTimeAgo(topic.CreatedDate)
+                                </span>
+                            </div>
+                        </div>
+                        <div class="forum-topic-stats">
+                            <div class="topic-stat">
+                                <span class="stat-value">@topic.ReplyCount</span>
+                                <span class="stat-label">@(topic.ReplyCount == 1 ? "Reply" : "Replies")</span>
+                            </div>
+                            <div class="topic-stat">
+                                <span class="stat-value">@topic.ViewCount</span>
+                                <span class="stat-label">@(topic.ViewCount == 1 ? "View" : "Views")</span>
+                            </div>
+                        </div>
+                        <div class="forum-topic-activity">
+                            @if (topic.LastActivityDate.HasValue)
+                            {
+                                <span class="activity-date" title="@topic.LastActivityDate.Value.ToString("MMMM dd, yyyy h:mm tt")">
+                                    Active @GetTimeAgo(topic.LastActivityDate)
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="activity-date" title="@topic.CreatedDate.ToString("MMMM dd, yyyy h:mm tt")">
+                                    Created @GetTimeAgo(topic.CreatedDate)
+                                </span>
+                            }
+                        </div>
+                    </button>
+                </form>
+            }
+        </div>
+
+        <!-- Pagination -->
+        @if (Model.TotalPages > 1)
+        {
+            <div class="pagination">
+                @if (Model.CurrentPage > 1)
+                {
+                    <a asp-action="Index" asp-route-page="@(Model.CurrentPage - 1)" asp-route-sortBy="@Model.SortBy" asp-route-search="@Model.SearchQuery" class="pagination-prev">
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </a>
+                }
+
+                <div class="pagination-numbers">
+                    @{
+                        int startPage = Math.Max(1, Model.CurrentPage - 2);
+                        int endPage = Math.Min(Model.TotalPages, startPage + 4);
+
+                        if (startPage > 1)
+                        {
+                            <a asp-action="Index" asp-route-page="1" asp-route-sortBy="@Model.SortBy" asp-route-search="@Model.SearchQuery">1</a>
+                            if (startPage > 2)
+                            {
+                                <span class="pagination-ellipsis">...</span>
+                            }
+                        }
+
+                        for (int i = startPage; i <= endPage; i++)
+                        {
+                            if (i == Model.CurrentPage)
+                            {
+                                <span class="pagination-current">@i</span>
+                            }
+                            else
+                            {
+                                <a asp-action="Index" asp-route-page="@i" asp-route-sortBy="@Model.SortBy" asp-route-search="@Model.SearchQuery">@i</a>
+                            }
+                        }
+
+                        if (endPage < Model.TotalPages)
+                        {
+                            if (endPage < Model.TotalPages - 1)
+                            {
+                                <span class="pagination-ellipsis">...</span>
+                            }
+                            <a asp-action="Index" asp-route-page="@Model.TotalPages" asp-route-sortBy="@Model.SortBy" asp-route-search="@Model.SearchQuery">@Model.TotalPages</a>
+                        }
+                    }
+                </div>
+
+                @if (Model.CurrentPage < Model.TotalPages)
+                {
+                    <a asp-action="Index" asp-route-page="@(Model.CurrentPage + 1)" asp-route-sortBy="@Model.SortBy" asp-route-search="@Model.SearchQuery" class="pagination-next">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </a>
+                }
+            </div>
+        }
+    }
+</div>
+
+@functions {
+    string GetTimeAgo(DateTime? dateTime)
+    {
+        if (!dateTime.HasValue)
+            return "never";
+
+        var timeSpan = DateTime.Now - dateTime.Value;
+
+        if (timeSpan.TotalMinutes < 1)
+            return "just now";
+        if (timeSpan.TotalMinutes < 60)
+            return $"{(int)timeSpan.TotalMinutes} {((int)timeSpan.TotalMinutes == 1 ? "minute" : "minutes")} ago";
+        if (timeSpan.TotalHours < 24)
+            return $"{(int)timeSpan.TotalHours} {((int)timeSpan.TotalHours == 1 ? "hour" : "hours")} ago";
+        if (timeSpan.TotalDays < 7)
+            return $"{(int)timeSpan.TotalDays} {((int)timeSpan.TotalDays == 1 ? "day" : "days")} ago";
+        if (timeSpan.TotalDays < 30)
+            return $"{(int)(timeSpan.TotalDays / 7)} {((int)(timeSpan.TotalDays / 7) == 1 ? "week" : "weeks")} ago";
+        if (timeSpan.TotalDays < 365)
+            return $"{(int)(timeSpan.TotalDays / 30)} {((int)(timeSpan.TotalDays / 30) == 1 ? "month" : "months")} ago";
+
+        return $"{(int)(timeSpan.TotalDays / 365)} {((int)(timeSpan.TotalDays / 365) == 1 ? "year" : "years")} ago";
+    }
+}

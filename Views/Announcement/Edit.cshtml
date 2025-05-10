@@ -1,0 +1,465 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@using GreenMeadowsPortal.Models
+@model AnnouncementEditViewModel
+
+@{
+    ViewData["Title"] = "Edit Announcement - Green Meadows Portal";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Meadows | Edit Announcement</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/announcement-form.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.4.2/tinymce.min.js" integrity="sha512-sWydClczl0KPyMWlARx1JaxJo2upoMYb9oh5IHwudGfICJ/8qaCyqhNTP5aa9Xx0aCRBwh71eZchgz0UzR1+9Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar Navigation -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Green Meadows</h3>
+                <div class="sidebar-logo">GM</div>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <img src="/images/default-avatar.png" alt="User Avatar" id="user-avatar">
+                </div>
+                <div class="user-info">
+                    <h4 id="user-name">Loading...</h4>
+                    <p id="user-role">Loading...</p>
+                </div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li><a href="/Dashboard" id="dashboard-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a asp-controller="Dashboard" asp-action="UserManagement"><i class="fas fa-users"></i> User Management</a></li>
+
+                <li class="active"><a asp-controller="Announcement" asp-action="Index"><i class="fas fa-bullhorn"></i> Announcements</a></li>
+                <li><a asp-controller="Dashboard" asp-action="Billing"><i class="fas fa-file-invoice-dollar"></i> Billing</a></li>
+                <li><a href="/Facilities"><i class="fas fa-swimming-pool"></i> Facilities</a></li>
+                <li><a href="/ServiceRequests"><i class="fas fa-tools"></i> Service Requests</a></li>
+                <li><a href="/Documents"><i class="fas fa-file-alt"></i> Documents</a></li>
+                <li><a href="/Forum"><i class="fas fa-comments"></i> Community Forum</a></li>
+                <li><a href="/Security"><i class="fas fa-shield-alt"></i> Security</a></li>
+                <li><a href="/Events"><i class="fas fa-calendar-alt"></i> Events</a></li>
+                <li><a href="/Feedback"><i class="fas fa-comment-dots"></i> Feedback</a></li>
+                <li><a href="/Contacts"><i class="fas fa-address-book"></i> Contacts</a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i>Logout</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <!-- Top Navigation -->
+            <header class="top-navbar">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="back-button">
+                    <a asp-controller="Announcement" asp-action="Index">
+                        <i class="fas fa-arrow-left"></i> Back to Announcements
+                    </a>
+                </div>
+
+                <div class="navbar-right">
+                    <div class="notification-bell">
+                        <a asp-controller="Notification" asp-action="Index">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-count" id="notification-count">0</span>
+                        </a>
+                    </div>
+                    <div class="inbox-icon">
+                        <a asp-controller="Contact" asp-action="Inbox">
+                            <i class="fas fa-envelope"></i>
+                            <span class="unread-messages" id="unread-message-count">0</span>
+                        </a>
+                    </div>
+                    <div class="user-dropdown">
+                        <img src="/images/default-avatar.png" alt="User Avatar" id="nav-user-avatar">
+                        <span id="nav-user-name">Loading...</span>
+                        <i class="fas fa-chevron-down"></i>
+
+                        <div class="dropdown-menu">
+                            <a asp-controller="Account" asp-action="Profile"><i class="fas fa-user"></i> My Profile</a>
+                            <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                            <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i>Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="main-content">
+                <div class="page-header">
+                    <h1>Edit Announcement</h1>
+                    <nav class="breadcrumb">
+                        <a href="/" id="dashboard-breadcrumb">Dashboard</a> /
+                        <a asp-controller="Announcement" asp-action="Index">Announcements</a> /
+                        Edit
+                    </nav>
+                </div>
+
+                <!-- Form Container -->
+                <div class="form-container">
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+
+                        <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+                        <div class="form-section">
+                            <h2 class="section-title">Announcement Details</h2>
+
+                            <div class="form-meta">
+                                <div class="meta-item">
+                                    <i class="fas fa-user"></i> Created by: @Model.AuthorName
+                                </div>
+                                <div class="meta-item">
+                                    <i class="fas fa-calendar"></i> Created on: @Model.CreatedDate.ToString("MMM dd, yyyy")
+                                </div>
+                            </div>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="Title">Title <span class="required">*</span></label>
+                                <input asp-for="Title" class="form-control" placeholder="Enter a clear, descriptive title" required />
+                                <span asp-validation-for="Title" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Content">Content <span class="required">*</span></label>
+                                <textarea asp-for="Content" class="form-control rich-editor" rows="10" placeholder="Enter announcement content"></textarea>
+                                <span asp-validation-for="Content" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label asp-for="Priority">Priority <span class="required">*</span></label>
+                                    <select asp-for="Priority" class="form-select" required id="priority-select">
+                                        <option value="">-- Select Priority --</option>
+                                        <option value="@AnnouncementPriority.General">General</option>
+                                        <option value="@AnnouncementPriority.Important">Important</option>
+                                        <option value="@AnnouncementPriority.Urgent">Urgent</option>
+                                    </select>
+                                    <span asp-validation-for="Priority" class="text-danger"></span>
+                                    <small class="form-text text-muted" id="priority-message" style="display: none;">
+                                        Note: Only administrators can create urgent announcements.
+                                    </small>
+                                </div>
+
+                                <div class="form-group col-md-6">
+                                    <label asp-for="Status">Status <span class="required">*</span></label>
+                                    <select asp-for="Status" class="form-select" required id="status-select">
+                                        <option value="">-- Select Status --</option>
+                                        <option value="@AnnouncementStatus.Draft">Draft</option>
+                                        <option value="@AnnouncementStatus.Published">Published</option>
+                                        <option value="@AnnouncementStatus.Archived">Archived</option>
+                                    </select>
+                                    <span asp-validation-for="Status" class="text-danger"></span>
+                                    <small class="form-text text-muted">
+                                        Select "Published" to make this announcement visible to users.
+                                    </small>
+                                </div>
+
+                            <div class="form-group">
+                                <label asp-for="TargetAudience">Target Audience</label>
+                                <select asp-for="TargetAudience" class="form-select" id="target-audience-select">
+                                    <option value="All">All Users</option>
+                                    <option value="Homeowners">Homeowners Only</option>
+                                    <option value="Staff">Staff Only</option>
+                                    <option value="Administrators">Administrators Only</option>
+                                </select>
+                                <span asp-validation-for="TargetAudience" class="text-danger"></span>
+                                <small class="form-text text-muted" id="audience-message" style="display: none;">
+                                    Note: Only administrators can change the target audience of an announcement.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h2 class="section-title">Publishing Options</h2>
+
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label asp-for="PublishDate">Publish Date</label>
+                                    <input asp-for="PublishDate" type="datetime-local" class="form-control" />
+                                    <span asp-validation-for="PublishDate" class="text-danger"></span>
+                                    <small class="form-text text-muted">Leave blank to publish immediately.</small>
+                                </div>
+
+                                <div class="form-group col-md-6">
+                                    <label asp-for="ExpirationDate">Expiration Date</label>
+                                    <input asp-for="ExpirationDate" type="datetime-local" class="form-control" />
+                                    <span asp-validation-for="ExpirationDate" class="text-danger"></span>
+                                    <small class="form-text text-muted">Leave blank for no expiration.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h2 class="section-title">Attachments</h2>
+
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label asp-for="Image">Featured Image</label>
+                                    @if (!string.IsNullOrEmpty(Model.ExistingImageUrl))
+                                    {
+                                        <div class="existing-attachment">
+                                            <span>Current image:</span>
+                                            <div class="image-preview">
+                                                <img src="@Model.ExistingImageUrl" alt="Current image" />
+                                            </div>
+                                        </div>
+                                    }
+                                    <div class="file-upload">
+                                        <input asp-for="Image" type="file" accept="image/*" id="image-upload" hidden />
+                                        <label for="image-upload" class="upload-label">
+                                            <i class="fas fa-cloud-upload-alt"></i> @(string.IsNullOrEmpty(Model.ExistingImageUrl) ? "Select Image" : "Change Image")
+                                        </label>
+                                        <span id="image-file-name">No file chosen</span>
+                                    </div>
+                                    <span asp-validation-for="Image" class="text-danger"></span>
+                                    <div id="image-preview" class="image-preview"></div>
+                                </div>
+
+                                <div class="form-group col-md-6">
+                                    <label asp-for="Attachment">Document Attachment</label>
+                                    @if (!string.IsNullOrEmpty(Model.ExistingAttachmentUrl))
+                                    {
+                                        <div class="existing-attachment">
+                                            <span>Current attachment:</span>
+                                            <a href="@Model.ExistingAttachmentUrl" target="_blank" class="attachment-link">
+                                                <i class="fas fa-paperclip"></i>
+                                                @System.IO.Path.GetFileName(Model.ExistingAttachmentUrl)
+                                            </a>
+                                        </div>
+                                    }
+                                    <div class="file-upload">
+                                        <input asp-for="Attachment" type="file" id="attachment-upload" hidden />
+                                        <label for="attachment-upload" class="upload-label">
+                                            <i class="fas fa-paperclip"></i> @(string.IsNullOrEmpty(Model.ExistingAttachmentUrl) ? "Select Document" : "Change Document")
+                                        </label>
+                                        <span id="attachment-file-name">No file chosen</span>
+                                    </div>
+                                    <span asp-validation-for="Attachment" class="text-danger"></span>
+                                    <small class="form-text text-muted">Accepted formats: PDF, DOC, DOCX, XLS, XLSX</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="main-footer">
+                <div class="footer-content">
+                    <p>&copy; @DateTime.Now.Year Green Meadows Subdivision. All rights reserved.</p>
+                    <div class="footer-links">
+                        <a href="/Privacy">Privacy Policy</a>
+                        <a href="/Terms">Terms of Service</a>
+                        <a href="/Contact">Contact Us</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Variable to store current user data
+        let currentUser = {
+            id: '',
+            name: '',
+            firstName: '',
+            role: '',
+            avatar: '/images/default-avatar.png',
+            notificationCount: 0
+        };
+
+        // Function to fetch current user data
+        async function fetchCurrentUser() {
+            try {
+                const response = await fetch('/api/User/GetCurrentUser');
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = {
+                        id: data.id,
+                        name: data.fullName,
+                        firstName: data.firstName,
+                        role: data.role,
+                        avatar: data.profileImageUrl || '/images/default-avatar.png',
+                        notificationCount: data.notificationCount
+                    };
+
+                    // Update UI with user data
+                    updateUserData();
+
+                    // Apply role-based restrictions
+                    applyRoleBasedRestrictions();
+                }
+            } catch (error) {
+                console.error('Failed to fetch user data:', error);
+
+                // Use default restrictions
+                applyRoleBasedRestrictions('Staff');
+            }
+        }
+
+        // Function to update UI with user data
+        function updateUserData() {
+            // Update sidebar user info
+            document.getElementById('user-avatar').src = currentUser.avatar;
+            document.getElementById('user-name').textContent = currentUser.firstName;
+            document.getElementById('user-role').textContent = currentUser.role;
+
+            // Update dashboard link based on role
+            const dashboardLink = document.getElementById('dashboard-link');
+            const dashboardBreadcrumb = document.getElementById('dashboard-breadcrumb');
+
+            if (currentUser.role === 'Admin') {
+                dashboardLink.href = '/Dashboard/AdminDashboard';
+                dashboardBreadcrumb.href = '/Dashboard/AdminDashboard';
+            } else if (currentUser.role === 'Staff') {
+                dashboardLink.href = '/Dashboard/StaffDashboard';
+                dashboardBreadcrumb.href = '/Dashboard/StaffDashboard';
+            } else {
+                dashboardLink.href = '/Dashboard/HomeownerDashboard';
+                dashboardBreadcrumb.href = '/Dashboard/HomeownerDashboard';
+            }
+
+            // Update navbar user info
+            document.getElementById('nav-user-avatar').src = currentUser.avatar;
+            document.getElementById('nav-user-name').textContent = currentUser.firstName;
+            document.getElementById('notification-count').textContent = currentUser.notificationCount;
+        }
+
+        // Function to apply role-based restrictions
+        function applyRoleBasedRestrictions(role) {
+            const userRole = role || currentUser.role;
+
+            if (userRole !== 'Admin') {
+                // Disable and show message for Urgent priority
+                const prioritySelect = document.getElementById('priority-select');
+                const urgentOption = prioritySelect.querySelector('option[value="Urgent"]');
+                if (urgentOption) {
+                    urgentOption.disabled = true;
+                }
+                document.getElementById('priority-message').style.display = 'block';
+
+                // Disable status changes for non-admins
+                const statusSelect = document.getElementById('status-select');
+                statusSelect.disabled = true;
+                document.getElementById('status-message').style.display = 'block';
+
+                // Disable target audience changes for non-admins
+                const targetAudienceSelect = document.getElementById('target-audience-select');
+                targetAudienceSelect.disabled = true;
+                document.getElementById('audience-message').style.display = 'block';
+            }
+        }
+
+        // Initialize TinyMCE
+        tinymce.init({
+            selector: '.rich-editor',
+            height: 300,
+            menubar: false,
+            plugins: [
+                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+            ],
+            toolbar: 'undo redo | blocks | ' +
+                'bold italic forecolor | alignleft aligncenter ' +
+                'alignright alignjustify | bullist numlist outdent indent | ' +
+                'removeformat | help',
+            content_style: 'body { font-family:Poppins,sans-serif; font-size:14px }'
+        });
+
+        // Document Ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fetch current user data
+            fetchCurrentUser();
+
+            // Image upload preview
+            const imageUpload = document.getElementById('image-upload');
+            const imageFileName = document.getElementById('image-file-name');
+            const imagePreview = document.getElementById('image-preview');
+
+            imageUpload.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const file = this.files[0];
+                    imageFileName.textContent = file.name;
+
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        imagePreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    imageFileName.textContent = 'No file chosen';
+                    imagePreview.innerHTML = '';
+                }
+            });
+
+            // Attachment file name display
+            const attachmentUpload = document.getElementById('attachment-upload');
+            const attachmentFileName = document.getElementById('attachment-file-name');
+
+            attachmentUpload.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    attachmentFileName.textContent = this.files[0].name;
+                } else {
+                    attachmentFileName.textContent = 'No file chosen';
+                }
+            });
+
+            // User dropdown functionality
+            const userDropdown = document.querySelector('.user-dropdown');
+            if (userDropdown) {
+                userDropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const dropdownMenu = this.querySelector('.dropdown-menu');
+                    dropdownMenu.classList.toggle('show');
+                });
+
+                document.addEventListener('click', function(e) {
+                    const dropdownMenu = document.querySelector('.dropdown-menu.show');
+                    if (dropdownMenu && !dropdownMenu.parentElement.contains(e.target)) {
+                        dropdownMenu.classList.remove('show');
+                    }
+                });
+            }
+
+            // Mobile sidebar toggle
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

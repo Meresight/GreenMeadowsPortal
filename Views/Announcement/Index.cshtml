@@ -1,0 +1,386 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@using GreenMeadowsPortal.Models
+@model AnnouncementListViewModel
+
+@{
+    ViewData["Title"] = "Announcements - Green Meadows Portal";
+    Layout = null;
+
+    // Define page-related variables
+    int totalPages = (int)Math.Ceiling(Model.TotalCount / 10.0);
+    int currentPage = Math.Max(1, Math.Min(totalPages,
+        int.TryParse(Context.Request.Query["page"].FirstOrDefault() ?? "1", out int page) ? page : 1));
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Meadows | Announcements</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/admin.css">
+    <link rel="stylesheet" href="~/css/announce-index.css">
+ </head>
+ <body>
+    <div class="wrapper">
+        <!-- Sidebar Navigation -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Green Meadows</h3>
+                <div class="sidebar-logo">GM</div>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <img src="@Model.ProfileImageUrl" alt="User Avatar">
+                </div>
+                <div class="user-info">
+                    <h4>@Model.FirstName</h4>
+                    <p>@Model.CurrentUserRole</p>
+                </div>
+            </div>
+
+            <ul class="sidebar-menu">
+                @if (Model.CurrentUserRole == "Admin")
+                {
+                    <li><a asp-controller="Dashboard" asp-action="AdminDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a asp-controller="Dashboard" asp-action="UserManagement"><i class="fas fa-users"></i> User Management</a></li>
+                }
+                else if (Model.CurrentUserRole == "Staff")
+                {
+                    <li><a asp-controller="Dashboard" asp-action="StaffDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                }
+                else
+                {
+                    <li><a asp-controller="Dashboard" asp-action="HomeownerDashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+                }
+
+                <li class="active">
+                    <a asp-controller="Announcement" asp-action="Index"><i class="fas fa-bullhorn"></i> Announcements</a>
+                </li>
+
+                @* Only show Billing for Admin and Homeowner roles, not for Staff *@
+                @if (Model.CurrentUserRole != "Staff")
+                {
+                    <li><a asp-controller="Dashboard" asp-action="Billing"><i class="fas fa-file-invoice-dollar"></i> Billing</a></li>
+                }
+
+                <li><a href="/Facilities"><i class="fas fa-swimming-pool"></i> Facilities</a></li>
+                <li><a href="/ServiceRequests"><i class="fas fa-tools"></i> Service Requests</a></li>
+                <li><a href="/Documents"><i class="fas fa-file-alt"></i> Documents</a></li>
+                <li><a href="/Forum"><i class="fas fa-comments"></i> Community Forum</a></li>
+                <li><a href="/Security"><i class="fas fa-shield-alt"></i> Security</a></li>
+                <li><a href="/Events"><i class="fas fa-calendar-alt"></i> Events</a></li>
+                <li><a href="/Feedback"><i class="fas fa-comment-dots"></i> Feedback</a></li>
+                <li><a href="/Contacts"><i class="fas fa-address-book"></i> Contacts</a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i>Logout</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <!-- Top Navigation -->
+            <header class="top-navbar">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="greeting">
+                    <h2>Announcements</h2>
+                    <p>@DateTime.Now.ToString("dddd, MMMM dd, yyyy")</p>
+                </div>
+
+                <div class="search-bar">
+                    <form asp-action="Index" method="get">
+                        <input type="text" name="search" placeholder="Search announcements..." value="@Model.SearchQuery">
+                        <button type="submit"><i class="fas fa-search"></i></button>
+                    </form>
+                </div>
+
+                <div class="navbar-right">
+                    <div class="notification-bell">
+                        <a asp-controller="Notification" asp-action="Index">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-count">@Model.NotificationCount</span>
+                        </a>
+                    </div>
+                    <div class="inbox-icon">
+                        <a asp-controller="Contact" asp-action="Inbox">
+                            <i class="fas fa-envelope"></i>
+                            <span class="unread-messages" id="unread-message-count">0</span>
+                        </a>
+                    </div>
+                    <div class="user-dropdown">
+                        <img src="@Model.ProfileImageUrl" alt="User Avatar">
+                        <span>@Model.FirstName</span>
+                        <i class="fas fa-chevron-down"></i>
+
+                        <div class="dropdown-menu">
+                            <a asp-controller="Dashboard" asp-action="Profile"><i class="fas fa-user"></i> My Profile</a>
+                            <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                            <a asp-controller="Account" asp-action="Logout"><i class="fas fa-sign-out-alt"></i>Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="main-content">
+                <div class="page-header">
+                    <h1>Announcements</h1>
+                    <div class="action-buttons">
+                        @if (Model.CurrentUserRole == "Admin" || Model.CurrentUserRole == "Staff")
+                        {
+                            <a asp-controller="Announcement" asp-action="Create" class="primary-btn">
+                                <i class="fas fa-plus"></i> Create Announcement
+                            </a>
+                        }
+                    </div>
+                </div>
+
+                <!-- Success Message -->
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                        <button class="close-alert"><i class="fas fa-times"></i></button>
+                    </div>
+                }
+
+                <!-- Filter Controls -->
+                <div class="filter-controls">
+                    <div class="filter-group">
+                        <label for="filter-type">Category:</label>
+                        <select id="filter-type" onchange="updateFilter(this)">
+                            <option value="all" selected="@(Model.FilterCategory == "all")">All Categories</option>
+                            <option value="urgent" selected="@(Model.FilterCategory == "urgent")">Urgent</option>
+                            <option value="important" selected="@(Model.FilterCategory == "important")">Important</option>
+                            <option value="general" selected="@(Model.FilterCategory == "general")">General</option>
+                            @if (Model.CurrentUserRole == "Admin")
+                            {
+                                <option value="drafts" selected="@(Model.FilterCategory == "drafts")">Drafts</option>
+                                <option value="scheduled" selected="@(Model.FilterCategory == "scheduled")">Scheduled</option>
+                                <option value="archived" selected="@(Model.FilterCategory == "archived")">Archived</option>
+                            }
+                            else if (Model.CurrentUserRole == "Staff")
+                            {
+                                <option value="drafts" selected="@(Model.FilterCategory == "drafts")">My Drafts</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Announcements List -->
+                <div class="announcements-list" id="announcements-container">
+                    @if (Model.Announcements == null || !Model.Announcements.Any())
+                    {
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-bullhorn"></i>
+                            </div>
+                            <h3>No Announcements Found</h3>
+                            <p>There are no announcements to display at this time.</p>
+
+                            @if (Model.CurrentUserRole == "Admin" || Model.CurrentUserRole == "Staff")
+                            {
+                                <a asp-controller="Announcement" asp-action="Create" class="primary-btn" style="margin-top: 1rem;">
+                                    <i class="fas fa-plus"></i> Create Announcement
+                                </a>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        foreach (var announcement in Model.Announcements)
+                        {
+                            <div class="announcement-card">
+                                <div class="announcement-header">
+                                    @switch (announcement.Priority)
+                                    {
+                                        case AnnouncementPriority.Urgent:
+                                            <span class="tag urgent">Urgent</span>
+                                            break;
+                                        case AnnouncementPriority.Important:
+                                            <span class="tag important">Important</span>
+                                            break;
+                                        case AnnouncementPriority.General:
+                                            <span class="tag general">General</span>
+                                            break;
+                                    }
+
+                                    @if (announcement.Status == AnnouncementStatus.Draft)
+                                    {
+                                        <span class="tag draft">Draft</span>
+
+                                        @* Add Publish button for drafts *@
+                                        @if (Model.CurrentUserRole == "Admin" ||
+                                       (Model.CurrentUserRole == "Staff" && announcement.AuthorId == Model.CurrentUserId))
+                                        {
+                                            <form asp-action="Publish" asp-route-id="@announcement.Id" method="post" style="display: inline;">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="draft-publish-btn">
+                                                    <i class="fas fa-paper-plane"></i> Publish
+                                                </button>
+                                            </form>
+                                        }
+                                    }
+                                    else if (announcement.PublishDate > DateTime.Now)
+                                    {
+                                        <span class="tag scheduled">Scheduled</span>
+                                    }
+                                    else if (announcement.Status == AnnouncementStatus.Archived)
+                                    {
+                                        <span class="tag archived">Archived</span>
+                                    }
+
+                                    <span class="date">@(announcement.PublishDate?.ToString("MMM dd, yyyy") ?? announcement.CreatedDate.ToString("MMM dd, yyyy"))</span>
+                                </div>
+
+                                <div class="announcement-content">
+                                    <h3>@announcement.Title</h3>
+                                    @Html.Raw(announcement.Content)
+                                </div>
+
+                                <div class="announcement-footer">
+                                    <a asp-action="Details" asp-route-id="@announcement.Id" class="read-more">
+                                        Read More <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                    <span class="announcement-meta">
+                                        By: @announcement.AuthorName | @announcement.ReadCount readers
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+
+                <!-- Pagination -->
+                @if (Model.TotalCount > 0)
+                {
+                    <div class="pagination" id="pagination-container">
+                        @if (currentPage > 1)
+                        {
+                            <a asp-action="Index" asp-route-page="@(currentPage - 1)" asp-route-filter="@Model.FilterCategory" asp-route-search="@Model.SearchQuery" class="prev">
+                                <i class="fas fa-chevron-left"></i> Previous
+                            </a>
+                        }
+
+                        @for (int i = 1; i <= totalPages; i++)
+                        {
+                            if (i == currentPage)
+                            {
+                                <a class="active">@i</a>
+                            }
+                            else if (i <= 3 || i > totalPages - 3 || Math.Abs(i - currentPage) <= 1)
+                            {
+                                <a asp-action="Index" asp-route-page="@i" asp-route-filter="@Model.FilterCategory" asp-route-search="@Model.SearchQuery">@i</a>
+                            }
+                            else if (Math.Abs(i - currentPage) == 2)
+                            {
+                                <span class="ellipsis">...</span>
+                                i = (i < currentPage) ? currentPage - 2 : totalPages - 3;
+                            }
+                        }
+
+                        @if (currentPage < totalPages)
+                        {
+                            <a asp-action="Index" asp-route-page="@(currentPage + 1)" asp-route-filter="@Model.FilterCategory" asp-route-search="@Model.SearchQuery" class="next">
+                                Next <i class="fas fa-chevron-right"></i>
+                            </a>
+                        }
+                    </div>
+                }
+            </main>
+
+            <!-- Footer -->
+            <footer class="main-footer">
+                <div class="footer-content">
+                    <p>&copy; @DateTime.Now.Year Green Meadows Subdivision. All rights reserved.</p>
+                    <div class="footer-links">
+                        <a href="/Privacy">Privacy Policy</a>
+                        <a href="/Terms">Terms of Service</a>
+                        <a href="/Contact">Contact Us</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+    <script>
+        function updateFilter(selectElement) {
+            let currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.set('filter', selectElement.value);
+            currentUrl.searchParams.set('page', '1');
+            window.location.href = currentUrl.toString();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // User dropdown toggle
+            const userDropdown = document.querySelector('.user-dropdown');
+            if (userDropdown) {
+                userDropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const dropdownMenu = this.querySelector('.dropdown-menu');
+                    dropdownMenu.classList.toggle('show');
+
+                    // Close dropdown when clicking outside
+                    document.addEventListener('click', function closeUserDropdown(e) {
+                        if (!userDropdown.contains(e.target)) {
+                            dropdownMenu.classList.remove('show');
+                            document.removeEventListener('click', closeUserDropdown);
+                        }
+                    });
+                });
+            }
+
+            // Mobile sidebar toggle
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                });
+            }
+
+            // Close alert button
+            const closeButtons = document.querySelectorAll('.close-alert');
+            closeButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    var alert = this.parentElement;
+                    alert.style.display = 'none';
+                });
+            });
+
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function() {
+                var alerts = document.querySelectorAll('.alert');
+                alerts.forEach(function(alert) {
+                    alert.style.display = 'none';
+                });
+            }, 5000);
+        });
+
+        // Poll for notification count updates every 30 seconds
+        setInterval(async function() {
+            try {
+                const response = await fetch('/api/announcements/unread-count');
+                if (response.ok) {
+                    const data = await response.json();
+                    document.querySelector('.notification-count').textContent = data.count;
+                }
+            } catch (error) {
+                console.error('Error updating notification count:', error);
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
+```

@@ -1,0 +1,543 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@using GreenMeadowsPortal.Models
+@model AnnouncementDetailsViewModel
+
+@{
+    ViewData["Title"] = "Delete Announcement - Green Meadows Portal";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Meadows | Delete Announcement</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/admin.css">
+    <style>
+        /* Consistent styles with admin dashboard */
+        .delete-confirmation-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .card-header {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+        }
+
+        .warning-icon {
+            background-color: #ffebee;
+            color: #f44336;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+            .warning-icon i {
+                font-size: 24px;
+            }
+
+        .card-header h2 {
+            margin: 0;
+            font-size: 20px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .announcement-details {
+            margin-bottom: 20px;
+        }
+
+        .detail-row {
+            display: flex;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 12px;
+        }
+
+            .detail-row:last-child {
+                border-bottom: none;
+            }
+
+        .label {
+            width: 150px;
+            font-weight: 600;
+            color: #495057;
+            flex-shrink: 0;
+        }
+
+        .value {
+            flex-grow: 1;
+            color: #333;
+        }
+
+        .content-preview {
+            margin-top: 20px;
+        }
+
+            .content-preview h3 {
+                font-size: 16px;
+                font-weight: 600;
+                margin-bottom: 10px;
+                color: #495057;
+            }
+
+        .preview-box {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            line-height: 1.6;
+            color: #495057;
+        }
+
+        .warning-message {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            color: #856404;
+            margin-top: 20px;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .card-footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            border: none;
+            border-radius: 4px;
+            padding: 9px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+            .btn i {
+                margin-right: 8px;
+            }
+
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+            .btn-secondary:hover {
+                background-color: #e0e0e0;
+            }
+
+        .btn-danger {
+            background-color: #f44336;
+            color: white;
+        }
+
+            .btn-danger:hover {
+                background-color: #d32f2f;
+            }
+
+        
+
+        </style>
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar Navigation -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Green Meadows</h3>
+                <div class="sidebar-logo">GM</div>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <img src="/images/default-avatar.png" alt="User Avatar" id="user-avatar">
+                </div>
+                <div class="user-info">
+                    <h4 id="user-name">Loading...</h4>
+                    <p id="user-role">Loading...</p>
+                </div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li><a href="/Dashboard" id="dashboard-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a asp-controller="Dashboard" asp-action="UserManagement"><i class="fas fa-users"></i> User Management</a></li>
+
+                <li class="active"><a asp-controller="Announcement" asp-action="Index"><i class="fas fa-bullhorn"></i> Announcements</a></li>
+                <li id="billing-menu-item"><a asp-controller="Dashboard" asp-action="Billing"><i class="fas fa-file-invoice-dollar"></i> Billing</a></li>
+                <li><a href="/Facilities"><i class="fas fa-swimming-pool"></i> Facilities</a></li>
+                <li><a href="/ServiceRequests"><i class="fas fa-tools"></i> Service Requests</a></li>
+                <li><a href="/Documents"><i class="fas fa-file-alt"></i> Documents</a></li>
+                <li><a href="/Forum"><i class="fas fa-comments"></i> Community Forum</a></li>
+                <li><a href="/Security"><i class="fas fa-shield-alt"></i> Security</a></li>
+                <li><a href="/Events"><i class="fas fa-calendar-alt"></i> Events</a></li>
+                <li><a href="/Feedback"><i class="fas fa-comment-dots"></i> Feedback</a></li>
+                <li><a href="/Contacts"><i class="fas fa-address-book"></i> Contacts</a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i>Logout</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <!-- Top Navigation -->
+            <header class="top-navbar">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="back-button">
+                    <a asp-controller="Announcement" asp-action="Details" asp-route-id="@Model.Id">
+                        <i class="fas fa-arrow-left"></i> Back to Announcement
+                    </a>
+                </div>
+
+                <div class="navbar-right">
+                    <div class="notification-bell">
+                        <a asp-controller="Notification" asp-action="Index">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-count" id="notification-count">0</span>
+                        </a>
+                    </div>
+                    <div class="inbox-icon">
+                        <a asp-controller="Contact" asp-action="Inbox">
+                            <i class="fas fa-envelope"></i>
+                            <span class="unread-messages" id="unread-message-count">0</span>
+                        </a>
+                    </div>
+                    <div class="user-dropdown">
+                        <img src="/images/default-avatar.png" alt="User Avatar" id="nav-user-avatar">
+                        <span id="nav-user-name">Loading...</span>
+                        <i class="fas fa-chevron-down"></i>
+
+                        <div class="dropdown-menu">
+                            <a asp-controller="Account" asp-action="Profile"><i class="fas fa-user"></i> My Profile</a>
+                            <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                            <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i>Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="main-content">
+                <div class="page-header">
+                    <h1>Delete Announcement</h1>
+                    <nav class="breadcrumb">
+                        <a id="dashboard-breadcrumb" href="/">Dashboard</a> /
+                        <a asp-controller="Announcement" asp-action="Index">Announcements</a> /
+                        Delete
+                    </nav>
+                </div>
+
+                <!-- Delete Confirmation Card -->
+                <div class="delete-confirmation-card">
+                    <div class="card-header">
+                        <div class="warning-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h2>Are you sure you want to delete this announcement?</h2>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="announcement-details">
+                            <div class="detail-row">
+                                <span class="label">Title:</span>
+                                <span class="value">@Model.Title</span>
+                            </div>
+
+                            <div class="detail-row">
+                                <span class="label">Created By:</span>
+                                <span class="value">@Model.AuthorName</span>
+                            </div>
+
+                            <div class="detail-row">
+                                <span class="label">Date Published:</span>
+                                <span class="value">@Model.PublishDate?.ToString("MMMM dd, yyyy")</span>
+                            </div>
+
+                            <div class="detail-row">
+                                <span class="label">Status:</span>
+                                <span class="value">@Model.Status</span>
+                            </div>
+
+                            <div class="detail-row">
+                                <span class="label">Priority:</span>
+                                <span class="value">@Model.Priority</span>
+                            </div>
+
+                            <div class="detail-row">
+                                <span class="label">Read By:</span>
+                                <span class="value">@Model.ReadCount users</span>
+                            </div>
+
+                            <div class="content-preview">
+                                <h3>Content Preview:</h3>
+                                <div class="preview-box">
+                                    @(Model.Content.Length > 300
+                                        ? Html.Raw(Model.Content.Substring(0, 300) + "...")
+                                        : Html.Raw(Model.Content))
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="warning-message">
+                            <p>This action cannot be undone. The announcement will be permanently deleted from the system and all related notifications will be removed.</p>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <form asp-action="Delete" asp-controller="Announcement" method="post" id="delete-form">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+
+                            <div class="action-buttons">
+                                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-trash"></i> Delete Permanently
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="main-footer">
+                <div class="footer-content">
+                    <p>&copy; @DateTime.Now.Year Green Meadows Subdivision. All rights reserved.</p>
+                    <div class="footer-links">
+                        <a href="/Privacy">Privacy Policy</a>
+                        <a href="/Terms">Terms of Service</a>
+                        <a href="/Contact">Contact Us</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Variable to store current user data
+        let currentUser = {
+            id: '',
+            name: '',
+            firstName: '',
+            role: '',
+            avatar: '/images/default-avatar.png',
+            notificationCount: 0
+        };
+
+        // Function to fetch current user data
+        async function fetchCurrentUser() {
+            try {
+                const response = await fetch('/api/User/GetCurrentUser');
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = {
+                        id: data.id,
+                        name: data.fullName,
+                        firstName: data.firstName,
+                        role: data.role,
+                        avatar: data.profileImageUrl || '/images/default-avatar.png',
+                        notificationCount: data.notificationCount
+                    };
+
+                    // Update UI with user data
+                    updateUserUI();
+
+                    // Apply role-based permissions
+                    applyRoleBasedPermissions();
+                }
+            } catch (error) {
+                console.error('Failed to fetch user data:', error);
+
+                // Use fallback data
+                currentUser = {
+                    id: 'unknown',
+                    name: 'User',
+                    firstName: 'User',
+                    role: 'Homeowner',
+                    avatar: '/images/default-avatar.png',
+                    notificationCount: 0
+                };
+
+                updateUserUI();
+                applyRoleBasedPermissions();
+            }
+        }
+
+        // Function to update UI elements with user data
+        function updateUserUI() {
+            // Update sidebar user info
+            const userAvatar = document.getElementById('user-avatar');
+            const userName = document.getElementById('user-name');
+            const userRole = document.getElementById('user-role');
+
+            if (userAvatar) userAvatar.src = currentUser.avatar;
+            if (userName) userName.textContent = currentUser.firstName;
+            if (userRole) userRole.textContent = currentUser.role;
+
+            // Update navbar user info
+            const navUserAvatar = document.getElementById('nav-user-avatar');
+            const navUserName = document.getElementById('nav-user-name');
+            const notificationCount = document.getElementById('notification-count');
+
+            if (navUserAvatar) navUserAvatar.src = currentUser.avatar;
+            if (navUserName) navUserName.textContent = currentUser.firstName;
+            if (notificationCount) notificationCount.textContent = currentUser.notificationCount;
+
+            // Update dashboard link based on role
+            const dashboardLink = document.getElementById('dashboard-link');
+            const dashboardBreadcrumb = document.getElementById('dashboard-breadcrumb');
+
+            if (dashboardLink) {
+                if (currentUser.role === 'Admin') {
+                    dashboardLink.href = '/Dashboard/AdminDashboard';
+                } else if (currentUser.role === 'Staff') {
+                    dashboardLink.href = '/Dashboard/StaffDashboard';
+                } else {
+                    dashboardLink.href = '/Dashboard/HomeownerDashboard';
+                }
+            }
+
+            if (dashboardBreadcrumb) {
+                if (currentUser.role === 'Admin') {
+                    dashboardBreadcrumb.href = '/Dashboard/AdminDashboard';
+                } else if (currentUser.role === 'Staff') {
+                    dashboardBreadcrumb.href = '/Dashboard/StaffDashboard';
+                } else {
+                    dashboardBreadcrumb.href = '/Dashboard/HomeownerDashboard';
+                }
+            }
+        }
+
+        // Function to apply role-based permissions
+        function applyRoleBasedPermissions() {
+            // Hide billing menu item for Staff
+            const billingMenuItem = document.getElementById('billing-menu-item');
+            if (billingMenuItem && currentUser.role === 'Staff') {
+                billingMenuItem.style.display = 'none';
+            }
+
+            // For homeowners or non-authors, redirect back to index since they can't delete
+            if (currentUser.role === 'Homeowner') {
+                window.location.href = '/Announcement/Index';
+            } else if (currentUser.role === 'Staff') {
+                // For Staff, check if they're the author
+                const authorElement = document.querySelector('.value');
+                if (authorElement && !authorElement.textContent.includes(currentUser.name)) {
+                    window.location.href = '/Announcement/Index';
+                }
+            }
+        }
+
+        // User dropdown functionality
+        function setupUserDropdown() {
+            const userDropdown = document.querySelector('.user-dropdown');
+            if (userDropdown) {
+                userDropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const dropdownMenu = this.querySelector('.dropdown-menu');
+                    dropdownMenu.classList.toggle('show');
+                });
+
+                document.addEventListener('click', function(e) {
+                    const dropdownMenu = document.querySelector('.dropdown-menu.show');
+                    if (dropdownMenu && !dropdownMenu.parentElement.contains(e.target)) {
+                        dropdownMenu.classList.remove('show');
+                    }
+                });
+            }
+        }
+
+        // Mobile sidebar toggle
+        function setupSidebarToggle() {
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                });
+            }
+        }
+
+        // Ensure form submission on delete button click
+        function setupDeleteForm() {
+            const form = document.getElementById('delete-form');
+            const deleteButton = form.querySelector('.btn-danger');
+
+            deleteButton.addEventListener('click', function(e) {
+                if (!confirm('Are you absolutely sure you want to delete this announcement? This action cannot be undone.')) {
+                    e.preventDefault();
+                }
+            });
+        }
+
+        // Initialize everything when the document is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchCurrentUser();
+            setupUserDropdown();
+            setupSidebarToggle();
+            setupDeleteForm();
+
+            // Start notification polling
+            setInterval(async function() {
+                try {
+                    const response = await fetch('/api/announcements/unread-count');
+                    if (response.ok) {
+                        const data = await response.json();
+                        const notificationCount = document.getElementById('notification-count');
+                        if (notificationCount) {
+                            notificationCount.textContent = data.count;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error updating notification count:', error);
+                }
+            }, 30000);
+        });
+    </script>
+</body>
+</html>

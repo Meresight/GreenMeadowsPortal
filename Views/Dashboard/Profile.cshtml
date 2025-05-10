@@ -1,0 +1,398 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@model GreenMeadowsPortal.ViewModels.ProfileViewModel
+@{
+    ViewData["Title"] = "My Profile - Green Meadows Portal";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subdivision Portal | My Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/profile.css" />
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar Navigation -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Green Meadows</h3>
+                <div class="sidebar-logo">GM</div>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <img src="@Model.ProfileImageUrl" alt="User Avatar">
+                </div>
+                <div class="user-info">
+                    <h4>@Model.FullName</h4>
+                    <p>@Model.Role</p>
+                </div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li><a asp-controller="Dashboard" asp-action="HomeownerDashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a asp-controller="Dashboard" asp-action="Announcement"><i class="fas fa-bullhorn"></i> Announcements</a></li>
+                <li>
+                    <a asp-controller="Dashboard" asp-action="Billing"><i class="fas fa-file-invoice-dollar"></i> Billing</a>
+                </li>
+                <li><a asp-controller="Facilities" asp-action="Index"><i class="fas fa-swimming-pool"></i> Facilities</a></li>
+                <li><a asp-controller="Requests" asp-action="Index"><i class="fas fa-tools"></i> Service Requests</a></li>
+                <li><a asp-controller="Documents" asp-action="Index"><i class="fas fa-file-alt"></i> Documents</a></li>
+                <li><a asp-controller="Forum" asp-action="Index"><i class="fas fa-comments"></i> Community Forum</a></li>
+                <li><a asp-controller="Security" asp-action="Index"><i class="fas fa-shield-alt"></i> Security</a></li>
+                <li><a asp-controller="Events" asp-action="Index"><i class="fas fa-calendar-alt"></i> Events</a></li>
+                <li><a asp-controller="Feedback" asp-action="Index"><i class="fas fa-comment-dots"></i> Feedback</a></li>
+                <li><a asp-controller="Contacts" asp-action="Index"><i class="fas fa-address-book"></i> Contacts</a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a asp-controller="Account" asp-action="Settings"><i class="fas fa-cog"></i> Settings</a>
+                <form asp-controller="Account" asp-action="Logout" method="post" id="logoutForm">
+                    @Html.AntiForgeryToken()
+                    <a href="javascript:document.getElementById('logoutForm').submit()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </form>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <!-- Top Navigation -->
+            <header class="top-navbar">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="search-bar">
+                    <input type="text" placeholder="Search...">
+                    <button><i class="fas fa-search"></i></button>
+                </div>
+
+                <div class="navbar-right">
+                    <div class="notification-bell">
+                        <a asp-controller="Notification" asp-action="Index">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-count">@Model.NotificationCount</span>
+                        </a>
+                    </div>
+                    <div class="inbox-icon">
+                        <a asp-controller="Contact" asp-action="Inbox">
+                            <i class="fas fa-envelope"></i>
+                            <span class="unread-messages" id="unread-message-count">0</span>
+                        </a>
+                    </div>
+                    <div class="user-dropdown">
+                        <img src="@Model.ProfileImageUrl" alt="User Avatar">
+                        <span>@Model.FullName</span>
+                        <i class="fas fa-chevron-down"></i>
+
+                        <div class="dropdown-menu">
+                            <a asp-controller="Account" asp-action="Profile"><i class="fas fa-user"></i> My Profile</a>
+                            <a href="#"><i class="fas fa-cog"></i> Settings</a>
+                            <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i>Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="main-content">
+                <div class="page-header">
+                    <h1>My Profile</h1>
+                    <nav class="breadcrumb">
+                        <a asp-controller="Dashboard" asp-action="Index">Home</a> / My Profile
+                    </nav>
+                </div>
+
+                <!-- Display any messages -->
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success">
+                        @TempData["SuccessMessage"]
+                    </div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger">
+                        @TempData["ErrorMessage"]
+                    </div>
+                }
+                @if (TempData["InfoMessage"] != null)
+                {
+                    <div class="alert alert-info">
+                        @TempData["InfoMessage"]
+                    </div>
+                }
+
+                <!-- Profile Content -->
+                <div class="content-row">
+                    <!-- Profile Info -->
+                    <div class="content-section half">
+                        <div class="section-header">
+                            <h2>Profile Information</h2>
+                            <a href="#" class="edit-btn" id="edit-profile-btn"><i class="fas fa-edit"></i> Edit</a>
+                        </div>
+
+                        <div class="profile-section">
+                            <div class="profile-photo">
+                                <img id="profile-img-preview" src="@Model.ProfileImageUrl" alt="User Avatar">
+                            </div>
+
+                            <div class="profile-info-form">
+                                <form asp-controller="Account" asp-action="UpdateProfile" method="post" enctype="multipart/form-data" id="profileForm">
+                                    @Html.AntiForgeryToken()
+
+                                    <div class="form-group" id="profile-image-upload-container" style="display: none;">
+                                        <label class="form-label">Profile Image</label>
+                                        <input type="file" asp-for="ProfileImage" class="form-control" id="profile-img-upload" accept=".jpg,.jpeg,.png">
+                                        <span class="text-muted">Accepted formats: JPG, JPEG, PNG</span>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Full Name</label>
+                                        <input type="text" asp-for="FullName" class="form-control" readonly>
+                                    </div>
+
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label class="form-label">Email</label>
+                                            <input type="email" asp-for="Email" class="form-control" readonly>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="form-label">Phone Number</label>
+                                            <input type="tel" asp-for="PhoneNumber" class="form-control" readonly>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Address</label>
+                                        <input type="text" asp-for="Address" class="form-control" readonly>
+                                    </div>
+
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label class="form-label">Member Since</label>
+                                            <input type="text" asp-for="MemberSince" class="form-control" readonly>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="form-label">Status</label>
+                                            <input type="text" asp-for="Status" class="form-control" readonly>
+                                        </div>
+                                    </div>
+
+                                    <!-- Hidden field to maintain ProfileImageUrl across form submissions -->
+                                    <input type="hidden" asp-for="ProfileImageUrl" />
+                                    <input type="hidden" asp-for="Role" />
+                                    <input type="hidden" asp-for="Status" />
+                                    <input type="hidden" asp-for="MemberSince" />
+                                    <div class="form-actions" style="display: none;" id="profile-form-actions">
+                                        <button type="submit" class="btn primary-btn">Save Changes</button>
+                                        <button type="button" class="btn secondary-btn" id="cancel-profile-btn">Cancel</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Emergency Contacts -->
+                    <div class="content-section half">
+                        <!-- Rest of the emergency contacts section remains unchanged -->
+                        <div class="section-header">
+                            <h2>Emergency Contacts</h2>
+                            <a href="#" class="edit-btn" id="edit-contacts-btn"><i class="fas fa-edit"></i> Edit</a>
+                        </div>
+
+                        <div class="emergency-contacts">
+                            <div class="contact-card">
+                                <div class="contact-header">
+                                    <h3>Primary Contact</h3>
+                                </div>
+                                <div class="contact-details">
+                                    <p><strong>Name:</strong> Maria Rivas</p>
+                                    <p><strong>Relationship:</strong> Spouse</p>
+                                    <p><strong>Phone:</strong> +63 919 987 6543</p>
+                                    <p><strong>Email:</strong> maria.rivas@example.com</p>
+                                </div>
+                            </div>
+
+                            <div class="contact-card">
+                                <div class="contact-header">
+                                    <h3>Secondary Contact</h3>
+                                </div>
+                                <div class="contact-details">
+                                    <p><strong>Name:</strong> Carlos Rivas</p>
+                                    <p><strong>Relationship:</strong> Brother</p>
+                                    <p><strong>Phone:</strong> +63 917 456 7890</p>
+                                    <p><strong>Email:</strong> carlos.rivas@example.com</p>
+                                </div>
+                            </div>
+
+                            <div class="form-actions contact-form-actions" style="display: none;" id="contacts-form-actions">
+                                <button type="button" class="btn primary-btn" id="save-contacts-btn">Save Changes</button>
+                                <button type="button" class="btn secondary-btn" id="cancel-contacts-btn">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vehicles Section -->
+                <div class="content-section">
+                    <!-- Vehicles section remains unchanged -->
+                    <div class="section-header">
+                        <h2>Registered Vehicles</h2>
+                        <a href="#" class="edit-btn" id="add-vehicle-btn"><i class="fas fa-plus"></i> Add Vehicle</a>
+                    </div>
+
+                    <div class="vehicles-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Vehicle Type</th>
+                                    <th>Make / Model</th>
+                                    <th>Color</th>
+                                    <th>Plate Number</th>
+                                    <th>RFID Tag</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Car</td>
+                                    <td>Toyota Fortuner</td>
+                                    <td>White</td>
+                                    <td>ABC 1234</td>
+                                    <td>RF-78901</td>
+                                    <td><span class="status in-progress">Active</span></td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a href="#" class="btn-icon edit-icon"><i class="fas fa-edit"></i></a>
+                                            <a href="#" class="btn-icon delete-icon"><i class="fas fa-trash-alt"></i></a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Motorcycle</td>
+                                    <td>Honda ADV 150</td>
+                                    <td>Red</td>
+                                    <td>XYZ 5678</td>
+                                    <td>RF-45623</td>
+                                    <td><span class="status in-progress">Active</span></td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a href="#" class="btn-icon edit-icon"><i class="fas fa-edit"></i></a>
+                                            <a href="#" class="btn-icon delete-icon"><i class="fas fa-trash-alt"></i></a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="main-footer">
+                <div class="footer-content">
+                    <p>&copy; 2025 Green Meadows Subdivision. All rights reserved.</p>
+                    <div class="footer-links">
+                        <a href="#">Privacy Policy</a>
+                        <a href="#">Terms of Service</a>
+                        <a href="#">Contact Us</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Profile edit functionality
+            document.getElementById("edit-profile-btn").addEventListener("click", function(e) {
+                e.preventDefault();
+                // Show the file upload input
+                document.getElementById("profile-image-upload-container").style.display = "block";
+
+                // Make form fields editable
+                const editableFields = ["FullName", "PhoneNumber", "Address"];
+                editableFields.forEach(field => {
+                    const inputElement = document.querySelector(`[name="${field}"]`);
+                    if (inputElement) {
+                        inputElement.removeAttribute("readonly");
+                    }
+                });
+
+                // Show form action buttons
+                document.getElementById("profile-form-actions").style.display = "block";
+            });
+
+            // Cancel button functionality
+            document.getElementById("cancel-profile-btn").addEventListener("click", function(e) {
+                e.preventDefault();
+
+                // Hide the file upload input
+                document.getElementById("profile-image-upload-container").style.display = "none";
+
+                // Reset form fields to original state
+                document.getElementById("profileForm").reset();
+
+                // Make form fields readonly again
+                const editableFields = ["FullName", "PhoneNumber", "Address"];
+                editableFields.forEach(field => {
+                    const inputElement = document.querySelector(`[name="${field}"]`);
+                    if (inputElement) {
+                        inputElement.setAttribute("readonly", "readonly");
+                    }
+                });
+
+                // Reset profile image preview
+                document.getElementById("profile-img-preview").src = "@Model.ProfileImageUrl";
+
+                // Hide form action buttons
+                document.getElementById("profile-form-actions").style.display = "none";
+            });
+
+            // Profile image preview functionality
+            document.getElementById("profile-img-upload").addEventListener("change", function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById("profile-img-preview").src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Emergency contacts edit functionality (for demonstration only)
+            document.getElementById("edit-contacts-btn").addEventListener("click", function(e) {
+                e.preventDefault();
+                document.getElementById("contacts-form-actions").style.display = "block";
+            });
+
+            document.getElementById("cancel-contacts-btn").addEventListener("click", function(e) {
+                e.preventDefault();
+                document.getElementById("contacts-form-actions").style.display = "none";
+            });
+
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function() {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    alert.style.display = 'none';
+                });
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

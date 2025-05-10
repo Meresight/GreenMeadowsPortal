@@ -1,0 +1,182 @@
+﻿@* Views/Poll/Index.cshtml *@
+@model GreenMeadowsPortal.ViewModels.PollListViewModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Polls & Surveys";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+}
+
+<div class="page-header">
+    <h1>Polls & Surveys</h1>
+    <nav class="breadcrumb">
+        <a asp-controller="Dashboard" asp-action="@(Model.CurrentUserRole == "Admin" ? "AdminDashboard" : (Model.CurrentUserRole == "Staff" ? "StaffDashboard" : "HomeownerDashboard"))">@Model.CurrentUserRole</a> / Polls & Surveys
+    </nav>
+</div>
+
+<!-- Admin controls for creating new polls -->
+@if (User.IsInRole("Admin"))
+{
+    <div class="admin-controls mb-4">
+        <a asp-controller="Poll" asp-action="Create" class="btn primary-btn">
+            <i class="fas fa-plus"></i> Create New Poll
+        </a>
+    </div>
+}
+
+<!-- Active Polls Section -->
+<div class="content-section">
+    <div class="section-header">
+        <h2>Active Polls</h2>
+    </div>
+
+    @if (Model.ActivePolls.Any())
+    {
+        <div class="polls-grid">
+            @foreach (var poll in Model.ActivePolls)
+            {
+                <div class="poll-card @(poll.HasVoted ? "voted" : "")">
+                    <div class="poll-header">
+                        <h3>@poll.Question</h3>
+                        <span class="poll-meta">Created on @poll.CreatedDate.ToString("MMM dd, yyyy")</span>
+                        @if (poll.ExpirationDate.HasValue)
+                        {
+                            <span class="poll-expiration">Expires on @poll.ExpirationDate.Value.ToString("MMM dd, yyyy")</span>
+                        }
+                    </div>
+
+                    <div class="poll-description">
+                        @if (!string.IsNullOrEmpty(poll.Description))
+                        {
+                            <p>@poll.Description</p>
+                        }
+                    </div>
+
+                    @if (poll.HasVoted)
+                    {
+                        <div class="poll-results">
+                            <div class="result-bar">
+                                <div class="yes-bar" style="width: @(poll.YesPercentage)%"></div>
+                                <div class="no-bar" style="width: @(poll.NoPercentage)%"></div>
+                            </div>
+                            <div class="result-numbers">
+                                <div class="yes-count">Yes: @poll.YesCount (@poll.YesPercentage%)</div>
+                                <div class="no-count">No: @poll.NoCount (@poll.NoPercentage%)</div>
+                            </div>
+                            <div class="your-vote">
+                                Your Vote: <span class="@(poll.UserResponse == true ? "yes-vote" : "no-vote")">@(poll.UserResponse == true ? "Yes" : "No")</span>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="poll-voting">
+                            <form asp-controller="Poll" asp-action="Submit" method="post" class="vote-form">
+                                <input type="hidden" name="PollId" value="@poll.Id" />
+                                <div class="vote-buttons">
+                                    <button type="submit" name="Response" value="true" class="btn yes-btn">
+                                        <i class="fas fa-check"></i> Yes
+                                    </button>
+                                    <button type="submit" name="Response" value="false" class="btn no-btn">
+                                        <i class="fas fa-times"></i> No
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    }
+
+                    <div class="poll-footer">
+                        <div class="poll-totals">
+                            <span class="total-votes">@poll.TotalResponses @(poll.TotalResponses == 1 ? "vote" : "votes")</span>
+                        </div>
+                        <a asp-controller="Poll" asp-action="Details" asp-route-id="@poll.Id" class="view-details">
+                            View Details <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-poll"></i>
+            </div>
+            <h3>No Active Polls</h3>
+            <p>There are no active polls available at this time.</p>
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-controller="Poll" asp-action="Create" class="btn primary-btn mt-4">
+                    <i class="fas fa-plus"></i> Create New Poll
+                </a>
+            }
+        </div>
+    }
+</div>
+
+<!-- Completed Polls Section -->
+<div class="content-section">
+    <div class="section-header">
+        <h2>Completed Polls</h2>
+    </div>
+
+    @if (Model.CompletedPolls.Any())
+    {
+        <div class="polls-grid completed-polls">
+            @foreach (var poll in Model.CompletedPolls)
+            {
+                <div class="poll-card completed">
+                    <div class="poll-header">
+                        <h3>@poll.Question</h3>
+                        <span class="poll-meta">Created on @poll.CreatedDate.ToString("MMM dd, yyyy")</span>
+                        @if (poll.ExpirationDate.HasValue)
+                        {
+                            <span class="poll-expiration">Expired on @poll.ExpirationDate.Value.ToString("MMM dd, yyyy")</span>
+                        }
+                        else
+                        {
+                            <span class="poll-expiration">Closed manually</span>
+                        }
+                    </div>
+
+                    <div class="poll-results">
+                        <div class="result-bar">
+                            <div class="yes-bar" style="width: @(poll.YesPercentage)%"></div>
+                            <div class="no-bar" style="width: @(poll.NoPercentage)%"></div>
+                        </div>
+                        <div class="result-numbers">
+                            <div class="yes-count">Yes: @poll.YesCount (@poll.YesPercentage%)</div>
+                            <div class="no-count">No: @poll.NoCount (@poll.NoPercentage%)</div>
+                        </div>
+                        @if (poll.HasVoted)
+                        {
+                            <div class="your-vote">
+                                Your Vote: <span class="@(poll.UserResponse == true ? "yes-vote" : "no-vote")">@(poll.UserResponse == true ? "Yes" : "No")</span>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="poll-footer">
+                        <div class="poll-totals">
+                            <span class="total-votes">@poll.TotalResponses @(poll.TotalResponses == 1 ? "vote" : "votes")</span>
+                        </div>
+                        <a asp-controller="Poll" asp-action="Details" asp-route-id="@poll.Id" class="view-details">
+                            View Details <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3>No Completed Polls</h3>
+            <p>There are no completed polls to display.</p>
+        </div>
+    }
+</div>

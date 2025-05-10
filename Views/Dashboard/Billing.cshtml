@@ -1,0 +1,361 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@model BillingViewModel
+
+@{
+    ViewData["Title"] = "Billing - Green Meadows Portal";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Meadows | Billing</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/billing.css">
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar Navigation -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Green Meadows</h3>
+                <div class="sidebar-logo">GM</div>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <img src="@(string.IsNullOrEmpty(Model.ProfileImageUrl) ? "/images/default-avatar.png" : Model.ProfileImageUrl)" alt="User Avatar">
+                </div>
+                <div class="user-info">
+                    <h4>@Model.FirstName</h4>
+                    <p>@Model.Role</p>
+                </div>
+            </div>
+
+            <ul class="sidebar-menu">
+                
+                <li><a asp-controller="Dashboard" asp-action="HomeownerDashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+
+                <li>
+                    <a asp-controller="Dashboard" asp-action="Announcement"><i class="fas fa-bullhorn"></i> Announcements</a>
+                </li>
+                <li class="active">
+                    <a asp-controller="Dashboard" asp-action="Billing"><i class="fas fa-file-invoice-dollar"></i> Billing</a>
+                </li>
+                <li>
+                    <a asp-controller="Dashboard" asp-action="Facilities"><i class="fas fa-swimming-pool"></i> Facilities</a>
+                </li>
+                <li>
+                    <a asp-controller="Dashboard" asp-action="ServiceRequests"><i class="fas fa-tools"></i> Service Requests</a>
+                </li>
+                <li>
+                    <a asp-controller="Dashboard" asp-action="Documents"><i class="fas fa-file-alt"></i> Documents</a>
+                </li>
+                <li>
+                    <a asp-controller="Dashboard" asp-action="Forum"><i class="fas fa-comments"></i> Community Forum</a>
+                </li>
+                <li>
+                    <a asp-controller="Dashboard" asp-action="Security"><i class="fas fa-shield-alt"></i> Security</a>
+                </li>
+                <li>
+                    <a asp-controller="Dashboard" asp-action="Events"><i class="fas fa-calendar-alt"></i> Events</a>
+                </li>
+                <li>
+                    <a asp-controller="Dashboard" asp-action="Feedback"><i class="fas fa-comment-dots"></i> Feedback</a>
+                </li>
+                <li>
+                    <a asp-controller="Dashboard" asp-action="Contacts"><i class="fas fa-address-book"></i> Contacts</a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a asp-controller="Dashboard" asp-action="Settings"><i class="fas fa-cog"></i> Settings</a>
+                <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i>Logout</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <!-- Top Navigation -->
+            <header class="top-navbar">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="search-bar">
+                    <input type="text" placeholder="Search billing...">
+                    <button><i class="fas fa-search"></i></button>
+                </div>
+
+                <div class="navbar-right">
+                    <div class="notification-bell">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-count">@Model.NotificationCount</span>
+                    </div>
+                    <div class="inbox-icon">
+                        <a asp-controller="Contact" asp-action="Inbox">
+                            <i class="fas fa-envelope"></i>
+                            <span class="unread-messages" id="unread-message-count">0</span>
+                        </a>
+                    </div>
+                    <div class="user-dropdown">
+                        <img src="@(string.IsNullOrEmpty(Model.ProfileImageUrl) ? "/images/default-avatar.png" : Model.ProfileImageUrl)" alt="User Avatar">
+                        <span>@Model.FirstName</span>
+                        <i class="fas fa-chevron-down"></i>
+
+                        <div class="dropdown-menu">
+                            <a asp-controller="Dashboard" asp-action="Profile"><i class="fas fa-user"></i> My Profile</a>
+                            <a asp-controller="Dashboard" asp-action="Settings"><i class="fas fa-cog"></i> Settings</a>
+                            <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i>Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="main-content">
+                <div class="page-header">
+                    <h1>Billing & Payments</h1>
+                    <nav class="breadcrumb">
+                        <a asp-controller="Dashboard" asp-action="Index">Home</a> / Billing
+                    </nav>
+                </div>
+
+                <!-- Billing Summary -->
+                <div class="billing-overview">
+                    <div class="billing-summary-card">
+                        <div class="summary-header">
+                            <h2>Current Billing Summary</h2>
+                            <span class="pill due-date">Due: @Model.CurrentBilling.DueDate.ToString("MMMM dd, yyyy")</span>
+                        </div>
+                        <div class="summary-content">
+                            <div class="summary-amount">
+                                <span class="currency">₱</span>
+                                <span class="amount">@Model.CurrentBilling.TotalAmount.ToString("N2")</span>
+                            </div>
+                            <p>Total Due for @Model.CurrentBilling.BillingPeriod</p>
+                            <button class="btn primary-btn btn-pay" id="payNowBtn">Pay Now</button>
+                        </div>
+                        <div class="summary-footer">
+                            <div class="payment-status">
+                                <i class="@(Model.CurrentBilling.Status == "Pending" ? "fas fa-clock" : "fas fa-check-circle")"></i>
+                                Status: <span class="status-text @Model.CurrentBilling.Status.ToLower()">@Model.CurrentBilling.Status</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="billing-stats">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="stat-details">
+                                <h3>₱@Model.OverdueAmount.ToString("N2")</h3>
+                                <p>Overdue Amount</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                            <div class="stat-details">
+                                <h3>₱@Model.TotalPaidThisYear.ToString("N2")</h3>
+                                <p>Paid This Year</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar-day"></i>
+                            </div>
+                            <div class="stat-details">
+                                <h3>@Model.DaysUntilDue</h3>
+                                <p>@(Model.DaysUntilDue == 1 ? "Day" : "Days") Until Due Date</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billing Details -->
+                <div class="content-section">
+                    <div class="section-header">
+                        <h2>Current Billing Details</h2>
+                        <a href="@Url.Action("DownloadBillingPDF", "Dashboard", new { id = Model.CurrentBilling.BillingId })" class="btn outline-btn btn-sm"><i class="fas fa-download"></i> Download PDF</a>
+                    </div>
+
+                    <div class="billing-items">
+                        @foreach (var item in Model.CurrentBilling.BillingItems)
+                        {
+                            <div class="billing-item">
+                                <span class="billing-label">@item.Description</span>
+                                <span class="billing-amount">₱@item.Amount.ToString("N2")</span>
+                            </div>
+                        }
+                        <div class="billing-item total">
+                            <span class="billing-label">Total</span>
+                            <span class="billing-amount">₱@Model.CurrentBilling.TotalAmount.ToString("N2")</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Methods -->
+                <div class="content-section">
+                    <div class="section-header">
+                        <h2>Payment Methods</h2>
+                        <button class="btn outline-btn btn-sm" id="addPaymentMethodBtn"><i class="fas fa-plus"></i> Add Method</button>
+                    </div>
+
+                    <div class="payment-methods">
+                        @foreach (var method in Model.PaymentMethods)
+                        {
+                            <div class="payment-method-card">
+                                <div class="payment-method-icon">
+                                    <i class="@method.IconClass"></i>
+                                </div>
+                                <div class="payment-method-details">
+                                    <h4>@method.Name</h4>
+                                    <p>@method.Details</p>
+                                </div>
+                                <div class="payment-method-actions">
+                                    @if (method.IsDefault)
+                                    {
+                                        <span class="default-badge">Default</span>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn text-btn set-default-btn" data-id="@method.Id">Set as default</button>
+                                    }
+                                    <button class="btn text-btn edit-payment-btn" data-id="@method.Id">Edit</button>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="add-payment-method" id="addPaymentMethodCard">
+                            <div class="add-icon">
+                                <i class="fas fa-plus-circle"></i>
+                            </div>
+                            <p>Add New Payment Method</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billing History -->
+                <div class="content-section">
+                    <div class="section-header">
+                        <h2>Billing History</h2>
+                        <div class="history-filter">
+                            <label for="history-year">Year:</label>
+                            <select id="history-year" asp-for="SelectedYear" asp-items="Model.YearOptions">
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="billing-history-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Month</th>
+                                    <th>Amount</th>
+                                    <th>Due Date</th>
+                                    <th>Payment Date</th>
+                                    <th>Status</th>
+                                    <th>Receipt</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var bill in Model.BillingHistory)
+                                {
+                                    <tr>
+                                        <td>@bill.BillingPeriod</td>
+                                        <td>₱@bill.TotalAmount.ToString("N2")</td>
+                                        <td>@bill.DueDate.ToString("MMM dd, yyyy")</td>
+                                        <td>@(bill.PaymentDate.HasValue ? bill.PaymentDate.Value.ToString("MMM dd, yyyy") : "--")</td>
+                                        <td>
+                                            <span class="status @bill.Status.ToLower()">
+                                                @(bill.Status == "Pending" ? "Pending" : "Paid")
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="@Url.Action("DownloadReceipt", "Dashboard", new { id = bill.BillingId })" class="btn text-btn">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="main-footer">
+                <div class="footer-content">
+                    <p>&copy; @DateTime.Now.Year Green Meadows Subdivision. All rights reserved.</p>
+                    <div class="footer-links">
+                        <a asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
+                        <a asp-controller="Home" asp-action="Terms">Terms of Service</a>
+                        <a asp-controller="Home" asp-action="Contact">Contact Us</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Modal for payment methods -->
+    <div id="paymentMethodModal" class="modal">
+        <!-- Modal content goes here -->
+    </div>
+
+    <!-- Payment confirmation modal -->
+    <div id="paymentConfirmModal" class="modal">
+        <!-- Modal content goes here -->
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/js/billing.js"></script>
+    <script>
+        // Sidebar toggle for mobile
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebar = document.getElementById('sidebar');
+
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('show');
+            });
+        }
+
+        // Year filter change event
+        document.getElementById('history-year').addEventListener('change', function() {
+            document.location.href = '@Url.Action("Billing", "Dashboard")?year=' + this.value;
+        });
+
+        // User dropdown toggle
+        const userDropdown = document.querySelector('.user-dropdown');
+        if (userDropdown) {
+            userDropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const dropdownMenu = this.querySelector('.dropdown-menu');
+                dropdownMenu.classList.toggle('show');
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function closeUserDropdown(e) {
+                    if (!userDropdown.contains(e.target)) {
+                        dropdownMenu.classList.remove('show');
+                        document.removeEventListener('click', closeUserDropdown);
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>

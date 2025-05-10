@@ -1,0 +1,695 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@model ContactDirectoryViewModel
+
+@{
+    ViewData["Title"] = "Contact Directory - Green Meadows Portal";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Meadows | Contact Directory</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/admin.css">
+	<link rel="stylesheet" href="~/css/contact.css">
+         
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar Navigation -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Green Meadows</h3>
+                <div class="sidebar-logo">GM</div>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <img src="@Model.ProfileImageUrl" alt="User Avatar">
+                </div>
+                <div class="user-info">
+                    <h4>@Model.FirstName</h4>
+                    <p>@Model.Role</p>
+                </div>
+            </div>
+
+            <ul class="sidebar-menu">
+                @if (Model.Role == "Admin")
+                {
+                    <li><a asp-controller="Dashboard" asp-action="AdminDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a asp-controller="Dashboard" asp-action="UserManagement"><i class="fas fa-users"></i> User Management</a></li>
+                }
+                else if (Model.Role == "Staff")
+                {
+                    <li><a asp-controller="Dashboard" asp-action="StaffDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                }
+                else
+                {
+                    <li><a asp-controller="Dashboard" asp-action="HomeownerDashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+                }
+
+                <li><a asp-controller="Announcement" asp-action="Index"><i class="fas fa-bullhorn"></i> Announcements</a></li>
+                <li><a asp-controller="Dashboard" asp-action="Billing"><i class="fas fa-file-invoice-dollar"></i> Billing</a></li>
+                <li><a href="/Facilities"><i class="fas fa-swimming-pool"></i> Facilities</a></li>
+                <li><a href="/ServiceRequests"><i class="fas fa-tools"></i> Service Requests</a></li>
+                <li><a href="/Documents"><i class="fas fa-file-alt"></i> Documents</a></li>
+                <li><a href="/Forum"><i class="fas fa-comments"></i> Community Forum</a></li>
+                <li><a href="/Security"><i class="fas fa-shield-alt"></i> Security</a></li>
+                <li><a href="/Events"><i class="fas fa-calendar-alt"></i> Events</a></li>
+                <li class="active"><a asp-controller="Contact" asp-action="Index"><i class="fas fa-address-book"></i> Contacts</a></li>
+                <li><a href="/Feedback"><i class="fas fa-comment-dots"></i> Feedback</a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                <a asp-controller="Account" asp-action="Logout"><i class="fas fa-sign-out-alt"></i>Logout</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <!-- Top Navigation -->
+            <!-- Replace the top-navbar section in Views/Contact/Index.cshtml with this -->
+            <header class="top-navbar">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="back-button">
+                    <a asp-controller="Dashboard" asp-action="@(Model.Role == "Admin" ? "AdminDashboard" : (Model.Role == "Staff" ? "StaffDashboard" : "HomeownerDashboard"))">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+
+                <div class="navbar-right">
+                    <div class="notification-bell">
+                        <a asp-controller="Notification" asp-action="Index">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-count">@Model.NotificationCount</span>
+                        </a>
+                    </div>
+
+                    <!-- Inbox Link -->
+                    <div class="inbox-link">
+                        <a asp-controller="Contact" asp-action="Inbox">
+                            <i class="fas fa-envelope"></i>
+                            <span id="unread-message-count" class="message-count">0</span>
+                        </a>
+                    </div>
+
+                    <div class="user-dropdown">
+                        <img src="@Model.ProfileImageUrl" alt="User Avatar">
+                        <span>@Model.FirstName</span>
+                        <i class="fas fa-chevron-down"></i>
+
+                        <div class="dropdown-menu">
+                            <a asp-controller="Account" asp-action="Profile"><i class="fas fa-user"></i> My Profile</a>
+                            <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                            <a asp-controller="Account" asp-action="Logout"><i class="fas fa-sign-out-alt"></i>Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="main-content">
+                <div class="page-header">
+                    <h1>Contact Directory</h1>
+                    <div class="action-buttons">
+                        <a asp-controller="Contact" asp-action="Inbox" class="secondary-btn">
+                            <i class="fas fa-envelope"></i> Inbox
+                        </a>
+
+                        @if (Model.Role == "Admin")
+                        {
+                            <a asp-controller="Contact" asp-action="Manage" class="primary-btn">
+                                <i class="fas fa-cog"></i> Manage Contacts
+                            </a>
+                        }
+
+                        @if (Model.Role == "Admin" || Model.Role == "Staff")
+                        {
+                            <a asp-controller="Contact" asp-action="StaffDirectory" class="secondary-btn">
+                                <i class="fas fa-user-tie"></i> Staff Directory
+                            </a>
+                        }
+                    </div>
+                </div>
+
+                <!-- Success/Error Messages -->
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                        <button class="close-alert"><i class="fas fa-times"></i></button>
+                    </div>
+                }
+
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+                        <button class="close-alert"><i class="fas fa-times"></i></button>
+                    </div>
+                }
+
+                <!-- Search Bar -->
+                <div class="search-bar">
+                    <input type="text" id="contact-search" placeholder="Search contacts...">
+                    <button id="search-btn"><i class="fas fa-search"></i> Search</button>
+                </div>
+
+                <!-- Mobile Category Tabs -->
+                <div class="category-tabs">
+                    <a href="#emergency" class="category-tab active" data-category="emergency">Emergency</a>
+                    <a href="#departments" class="category-tab" data-category="departments">Departments</a>
+                    @if (Model.Role == "Admin" || Model.Role == "Staff")
+                    {
+                        <a href="#staff" class="category-tab" data-category="staff">Staff</a>
+                        <a href="#vendors" class="category-tab" data-category="vendors">Vendors</a>
+                    }
+                    <a href="#community" class="category-tab" data-category="community">Community</a>
+                </div>
+
+                <!-- Contact Directory Content -->
+                <div class="contacts-container">
+                    <!-- Sidebar Categories -->
+                    <div class="contact-sidebar">
+                        <ul class="category-list">
+                            <li><a href="#emergency" class="active" data-category="emergency"><i class="fas fa-exclamation-circle"></i> Emergency Contacts</a></li>
+                            <li><a href="#departments" data-category="departments"><i class="fas fa-building"></i> Departments</a></li>
+                            @if (Model.Role == "Admin" || Model.Role == "Staff")
+                            {
+                                <li><a href="#staff" data-category="staff"><i class="fas fa-user-tie"></i> Staff Directory</a></li>
+                                <li><a href="#vendors" data-category="vendors"><i class="fas fa-truck"></i> Approved Vendors</a></li>
+                            }
+                            <li><a href="#community" data-category="community"><i class="fas fa-users"></i> Community Directory</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Contact Listings -->
+                    <div class="contact-listing">
+                        <!-- Emergency Contacts -->
+                        <div id="emergency" class="contact-section">
+                            <h2><i class="fas fa-exclamation-circle"></i> Emergency Contacts</h2>
+
+                            @if (Model.EmergencyContacts != null && Model.EmergencyContacts.Any())
+                            {
+                                foreach (var contact in Model.EmergencyContacts)
+                                {
+                                    <div class="emergency-contact-card">
+                                        <div class="emergency-icon">
+                                            <i class="fas fa-phone-alt"></i>
+                                        </div>
+                                        <div class="contact-info">
+                                            <h3 class="contact-name">
+                                                @contact.Name
+                                                <span class="priority-badge">@contact.Priority</span>
+                                            </h3>
+                                            <div class="contact-details">
+                                                <p><i class="fas fa-phone"></i> @contact.PhoneNumber</p>
+                                                @if (!string.IsNullOrEmpty(contact.Email))
+                                                {
+                                                    <p><i class="fas fa-envelope"></i> @contact.Email</p>
+                                                }
+                                                @if (!string.IsNullOrEmpty(contact.Description))
+                                                {
+                                                    <p><i class="fas fa-info-circle"></i> @contact.Description</p>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="empty-state">
+                                    <i class="fas fa-phone-slash"></i>
+                                    <h3>No Emergency Contacts</h3>
+                                    <p>No emergency contacts have been added yet.</p>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Department Contacts -->
+                        <div id="departments" class="contact-section" style="display: none;">
+                            <h2><i class="fas fa-building"></i> Department Contacts</h2>
+
+                            @if (Model.DepartmentContacts != null && Model.DepartmentContacts.Any())
+                            {
+                                foreach (var contact in Model.DepartmentContacts)
+                                {
+                                    <div class="contact-card">
+                                        <div class="contact-avatar">
+                                            <img src="@contact.ProfileImageUrl" alt="@contact.ContactPerson">
+                                        </div>
+                                        <div class="contact-info">
+                                            <h3 class="contact-name">
+                                                @contact.DepartmentName
+                                            </h3>
+                                            <div class="contact-details">
+                                                <p><i class="fas fa-user"></i> @contact.ContactPerson - @contact.Position</p>
+                                                <p><i class="fas fa-phone"></i> @contact.PhoneNumber</p>
+                                                <p><i class="fas fa-envelope"></i> @contact.Email</p>
+                                                @if (!string.IsNullOrEmpty(contact.OfficeHours))
+                                                {
+                                                    <p><i class="fas fa-clock"></i> @contact.OfficeHours</p>
+                                                }
+                                                @if (!string.IsNullOrEmpty(contact.Location))
+                                                {
+                                                    <p><i class="fas fa-map-marker-alt"></i> @contact.Location</p>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="contact-actions">
+                                            <a href="tel:@contact.PhoneNumber" class="action-btn call" title="Call">
+                                                <i class="fas fa-phone-alt"></i>
+                                            </a>
+                                            <a href="mailto:@contact.Email" class="action-btn email" title="Email">
+                                                <i class="fas fa-envelope"></i>
+                                            </a>
+                                            @if (!string.IsNullOrEmpty(contact.UserId))
+                                            {
+                                                <a asp-controller="Contact" asp-action="Message" asp-route-id="@contact.UserId" class="action-btn message" title="Send Message">
+                                                    <i class="fas fa-comment"></i>
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <!-- For departments without a user ID, create a message form with department email -->
+                                                <a href="mailto:@contact.Email" class="action-btn message" title="Send Email">
+                                                    <i class="fas fa-comment"></i>
+                                                </a>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="empty-state">
+                                    <i class="fas fa-building"></i>
+                                    <h3>No Department Contacts</h3>
+                                    <p>No department contacts have been added yet.</p>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Staff Directory (Admin & Staff Only) -->
+                        @if (Model.Role == "Admin" || Model.Role == "Staff")
+                        {
+                            <div id="staff" class="contact-section" style="display: none;">
+                                <h2>
+                                    <i class="fas fa-user-tie"></i> Staff Directory
+                                    @if (Model.Role == "Admin" || Model.Role == "Staff")
+                                    {
+                                        <a asp-controller="Contact" asp-action="StaffDirectory" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+                                    }
+                                </h2>
+                                @if (Model.StaffContacts != null && Model.StaffContacts.Any())
+                                {
+                                    foreach (var contact in Model.StaffContacts)
+                                    {
+                                        <div class="contact-card">
+                                            <div class="contact-avatar">
+                                                <img src="@contact.ProfileImageUrl" alt="@contact.FullName">
+                                            </div>
+                                            <div class="contact-info">
+                                                <h3 class="contact-name">
+                                                    @contact.FullName
+                                                    @if (contact.Role == "Admin")
+                                                    {
+                                                        <span class="contact-role-badge admin">Admin</span>
+                                                    }
+                                                    else if (contact.Role == "Staff")
+                                                    {
+                                                        <span class="contact-role-badge staff">Staff</span>
+                                                    }
+                                                </h3>
+                                                <div class="contact-details">
+                                                    @if (!string.IsNullOrEmpty(contact.Department))
+                                                    {
+                                                        <p><i class="fas fa-building"></i> @contact.Department</p>
+                                                    }
+                                                    @if (contact.ShowPhoneNumber && !string.IsNullOrEmpty(contact.PhoneNumber))
+                                                    {
+                                                        <p><i class="fas fa-phone"></i> @contact.PhoneNumber</p>
+                                                    }
+                                                    @if (contact.ShowEmail && !string.IsNullOrEmpty(contact.Email))
+                                                    {
+                                                        <p><i class="fas fa-envelope"></i> @contact.Email</p>
+                                                    }
+                                                </div>
+                                            </div>
+                                          <div class="contact-actions">
+    @if (contact.ShowPhoneNumber && !string.IsNullOrEmpty(contact.PhoneNumber))
+    {
+        <a href="tel:@contact.PhoneNumber" class="action-btn call" title="Call">
+            <i class="fas fa-phone-alt"></i>
+        </a>
+    }
+    @if (contact.ShowEmail && !string.IsNullOrEmpty(contact.Email))
+    {
+        <a href="mailto:@contact.Email" class="action-btn email" title="Email">
+            <i class="fas fa-envelope"></i>
+        </a>
+    }
+    <a asp-controller="Contact" asp-action="Message" asp-route-id="@contact.UserId" class="action-btn message" title="Send Message">
+        <i class="fas fa-comment"></i>
+    </a>
+</div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="empty-state">
+                                        <i class="fas fa-user-tie"></i>
+                                        <h3>No Staff Contacts</h3>
+                                        <p>No staff contacts have been added yet.</p>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Vendor Contacts (Admin & Staff Only) -->
+                            <div id="vendors" class="contact-section" style="display: none;">
+                                <h2><i class="fas fa-truck"></i> Approved Vendors</h2>
+
+                                @if (Model.VendorContacts != null && Model.VendorContacts.Any())
+                                {
+                                    foreach (var vendor in Model.VendorContacts)
+                                    {
+                                        <div class="vendor-contact-card">
+                                            <div class="vendor-card-header">
+                                                <h3 class="vendor-name">
+                                                    @vendor.CompanyName
+                                                    @if (vendor.IsPreferred)
+                                                    {
+                                                        <span class="contact-role-badge preferred">Preferred</span>
+                                                    }
+                                                </h3>
+                                                <span class="vendor-service">@vendor.Service</span>
+                                            </div>
+                                            <div class="contact-details">
+                                                @if (!string.IsNullOrEmpty(vendor.ContactPerson))
+                                                {
+                                                    <p><i class="fas fa-user"></i> @vendor.ContactPerson</p>
+                                                }
+                                                <p><i class="fas fa-phone"></i> @vendor.PhoneNumber</p>
+                                                @if (!string.IsNullOrEmpty(vendor.Email))
+                                                {
+                                                    <p><i class="fas fa-envelope"></i> @vendor.Email</p>
+                                                }
+                                                @if (!string.IsNullOrEmpty(vendor.Website))
+                                                {
+                                                    <p><i class="fas fa-globe"></i> <a href="@(vendor.Website.StartsWith("http") ? vendor.Website : "https://" + vendor.Website)" target="_blank">@vendor.Website</a></p>
+                                                }
+                                                @if (!string.IsNullOrEmpty(vendor.Notes))
+                                                {
+                                                    <p><i class="fas fa-info-circle"></i> @vendor.Notes</p>
+                                                }
+                                            </div>
+                                            <div class="contact-actions" style="margin-top: 10px;">
+                                                <a href="tel:@vendor.PhoneNumber" class="action-btn call" title="Call">
+                                                    <i class="fas fa-phone-alt"></i>
+                                                </a>
+                                                @if (!string.IsNullOrEmpty(vendor.Email))
+                                                {
+                                                    <a href="mailto:@vendor.Email" class="action-btn email" title="Email">
+                                                        <i class="fas fa-envelope"></i>
+                                                    </a>
+                                                }
+                                                @if (!string.IsNullOrEmpty(vendor.Website))
+                                                {
+                                                    <a href="@(vendor.Website.StartsWith("http") ? vendor.Website : "https://" + vendor.Website)" class="action-btn" target="_blank" title="Visit Website">
+                                                        <i class="fas fa-globe"></i>
+                                                    </a>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="empty-state">
+                                        <i class="fas fa-truck"></i>
+                                        <h3>No Vendor Contacts</h3>
+                                        <p>No vendor contacts have been added yet.</p>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <!-- Community Directory -->
+                        <div id="community" class="contact-section" style="display: none;">
+                            <h2><i class="fas fa-users"></i> Community Directory</h2>
+
+                            @if (Model.CommunityContacts != null && Model.CommunityContacts.Any())
+                            {
+                                foreach (var contact in Model.CommunityContacts)
+                                {
+                                    <div class="contact-card">
+                                        <div class="contact-avatar">
+                                            <img src="@contact.ProfileImageUrl" alt="@contact.FullName">
+                                        </div>
+                                        <div class="contact-info">
+                                            <h3 class="contact-name">
+                                                @contact.FullName
+                                                <span class="contact-role-badge homeowner">Homeowner</span>
+                                            </h3>
+                                            <div class="contact-details">
+                                                @if (contact.ShowEmail && !string.IsNullOrEmpty(contact.Email))
+                                                {
+                                                    <p><i class="fas fa-envelope"></i> @contact.Email</p>
+                                                }
+                                                @if (contact.ShowPhoneNumber && !string.IsNullOrEmpty(contact.PhoneNumber))
+                                                {
+                                                    <p><i class="fas fa-phone"></i> @contact.PhoneNumber</p>
+                                                }
+                                                @if (contact.ShowAddress && !string.IsNullOrEmpty(contact.Address))
+                                                {
+                                                    <p>
+                                                        <i class="fas fa-home"></i>
+                                                        @contact.Address
+                                                        @if (!string.IsNullOrEmpty(contact.Unit))
+                                                        {
+                                                            <span>, Unit @contact.Unit</span>
+                                                        }
+                                                    </p>
+                                                }
+                                                @if (!string.IsNullOrEmpty(contact.Bio))
+                                                {
+                                                    <p><i class="fas fa-info-circle"></i> @contact.Bio</p>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="contact-actions">
+                                            @if (contact.ShowPhoneNumber && !string.IsNullOrEmpty(contact.PhoneNumber))
+                                            {
+                                                <a href="tel:@contact.PhoneNumber" class="action-btn call" title="Call">
+                                                    <i class="fas fa-phone-alt"></i>
+                                                </a>
+                                            }
+                                            @if (contact.ShowEmail && !string.IsNullOrEmpty(contact.Email))
+                                            {
+                                                <a href="mailto:@contact.Email" class="action-btn email" title="Email">
+                                                    <i class="fas fa-envelope"></i>
+                                                </a>
+                                            }
+                                            <a asp-controller="Contact" asp-action="Message" asp-route-id="@contact.UserId" class="action-btn message" title="Send Message">
+                                                <i class="fas fa-comment"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="empty-state">
+                                    <i class="fas fa-users"></i>
+                                    <h3>No Community Contacts</h3>
+                                    <p>No community members have chosen to be listed in the directory yet.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="main-footer">
+                <div class="footer-content">
+                    <p>&copy; @DateTime.Now.Year Green Meadows Subdivision. All rights reserved.</p>
+                    <div class="footer-links">
+                        <a href="/Privacy">Privacy Policy</a>
+                        <a href="/Terms">Terms of Service</a>
+                        <a href="/Contact">Contact Us</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mobile sidebar toggle
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                });
+            }
+
+            // User dropdown toggle
+            const userDropdown = document.querySelector('.user-dropdown');
+            if (userDropdown) {
+                userDropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    this.querySelector('.dropdown-menu').classList.toggle('show');
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (!userDropdown.contains(e.target)) {
+                        userDropdown.querySelector('.dropdown-menu').classList.remove('show');
+                    }
+                });
+            }
+
+            // Contact category navigation
+            const categoryLinks = document.querySelectorAll('.category-list a, .category-tab');
+            const contactSections = document.querySelectorAll('.contact-section');
+
+            categoryLinks.forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // Remove active class from all links
+                    categoryLinks.forEach(function(link) {
+                        link.classList.remove('active');
+                    });
+
+                    // Add active class to clicked link
+                    this.classList.add('active');
+
+                    // Hide all sections
+                    contactSections.forEach(function(section) {
+                        section.style.display = 'none';
+                    });
+
+                    // Show the target section
+                    const targetId = this.getAttribute('href').substring(1);
+                    document.getElementById(targetId).style.display = 'block';
+
+                    // Sync desktop and mobile navigation
+                    const category = this.getAttribute('data-category');
+                    document.querySelectorAll(`[data-category="${category}"]`).forEach(function(el) {
+                        el.classList.add('active');
+                    });
+                });
+            });
+
+            // Search functionality
+            const searchInput = document.getElementById('contact-search');
+            const searchButton = document.getElementById('search-btn');
+
+            function performSearch() {
+                const searchTerm = searchInput.value.toLowerCase();
+
+                // Find all contact cards
+                const contactCards = document.querySelectorAll('.contact-card, .emergency-contact-card, .vendor-contact-card');
+
+                // Get currently visible section
+                const visibleSection = document.querySelector('.contact-section[style="display: block"]') ||
+                                       document.querySelector('.contact-section:not([style="display: none"])');
+
+                // Flag to track if we found any matches
+                let foundMatch = false;
+
+                contactCards.forEach(function(card) {
+                    // Only search in the visible section
+                    if (!card.closest('.contact-section').isSameNode(visibleSection)) {
+                        return;
+                    }
+
+                    const cardText = card.textContent.toLowerCase();
+
+                    if (cardText.includes(searchTerm)) {
+                        card.style.display = 'flex';
+                        foundMatch = true;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                // Show empty state if no matches found
+                const emptyState = visibleSection.querySelector('.empty-state');
+                if (emptyState) {
+                    if (!foundMatch && searchTerm) {
+                        // Create a search-specific empty state if it doesn't exist
+                        let searchEmptyState = visibleSection.querySelector('.search-empty-state');
+
+                        if (!searchEmptyState) {
+                            searchEmptyState = document.createElement('div');
+                            searchEmptyState.className = 'empty-state search-empty-state';
+                            searchEmptyState.innerHTML = `
+                                <i class="fas fa-search"></i>
+                                <h3>No matching contacts</h3>
+                                <p>No contacts match your search term. Try a different search.</p>
+                            `;
+                            visibleSection.appendChild(searchEmptyState);
+                        }
+
+                        // Hide the original empty state and show search empty state
+                        emptyState.style.display = 'none';
+                        searchEmptyState.style.display = 'block';
+                    } else {
+                        // Reset empty states
+                        emptyState.style.display = foundMatch ? 'none' : 'block';
+
+                        const searchEmptyState = visibleSection.querySelector('.search-empty-state');
+                        if (searchEmptyState) {
+                            searchEmptyState.style.display = 'none';
+                        }
+                    }
+                }
+            }
+
+            if (searchButton) {
+                searchButton.addEventListener('click', performSearch);
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('keyup', function(e) {
+                    if (e.key === 'Enter') {
+                        performSearch();
+                    }
+                });
+            }
+
+            // Close alert buttons
+            const closeAlerts = document.querySelectorAll('.close-alert');
+            closeAlerts.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    this.closest('.alert').style.display = 'none';
+                });
+            });
+
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function() {
+                document.querySelectorAll('.alert').forEach(function(alert) {
+                    alert.style.display = 'none';
+                });
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

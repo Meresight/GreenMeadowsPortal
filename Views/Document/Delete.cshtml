@@ -1,0 +1,77 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@model DocumentViewModel
+
+@{
+    ViewData["Title"] = "Delete Document";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+}
+
+<div class="page-header">
+    <h1>Delete Document</h1>
+    <nav class="breadcrumb">
+        <a asp-controller="Dashboard" asp-action="Index">Dashboard</a> /
+        <a asp-controller="Document" asp-action="Index">Documents</a> /
+        Delete
+    </nav>
+</div>
+
+<div class="delete-confirmation">
+    <div class="confirmation-icon">
+        <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    <p>Are you sure you want to delete this document? This action cannot be undone.</p>
+
+    <div class="document-details">
+        <div class="document-icon">
+            @if (Model.FileType.ToLower() == "pdf")
+            {
+                <i class="fas fa-file-pdf"></i>
+            }
+            else if (Model.FileType.ToLower() == "doc" || Model.FileType.ToLower() == "docx")
+            {
+                <i class="fas fa-file-word"></i>
+            }
+            else if (Model.FileType.ToLower() == "xls" || Model.FileType.ToLower() == "xlsx")
+            {
+                <i class="fas fa-file-excel"></i>
+            }
+            else if (Model.FileType.ToLower() == "ppt" || Model.FileType.ToLower() == "pptx")
+            {
+                <i class="fas fa-file-powerpoint"></i>
+            }
+            else if (Model.FileType.ToLower() == "jpg" || Model.FileType.ToLower() == "jpeg" || Model.FileType.ToLower() == "png" || Model.FileType.ToLower() == "gif")
+            {
+                <i class="fas fa-file-image"></i>
+            }
+            else
+            {
+                <i class="fas fa-file"></i>
+            }
+        </div>
+        <div class="document-info">
+            <h3>@Model.Name</h3>
+            <p>@Model.Description</p>
+            <div class="document-meta">
+                <span><i class="fas fa-file-alt"></i> @Model.FileType</span>
+                <span><i class="fas fa-weight-hanging"></i> @Model.FileSize</span>
+                <span><i class="fas fa-calendar-alt"></i> @Model.UploadDate.ToString("MMM dd, yyyy")</span>
+                <span><i class="fas fa-folder"></i> @Model.Category</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="confirmation-actions">
+        <form asp-controller="Document" asp-action="Delete" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="category" value="@Model.Category" />
+            <input type="hidden" name="fileName" value="@System.IO.Path.GetFileName(Model.FileUrl)" />
+            <button type="submit" class="btn danger-btn">
+                <i class="fas fa-trash"></i> Delete Document
+            </button>
+        </form>
+        <a asp-controller="Document" asp-action="Index" class="btn secondary-btn">
+            <i class="fas fa-times"></i> Cancel
+        </a>
+    </div>
+</div>

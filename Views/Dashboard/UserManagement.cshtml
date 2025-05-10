@@ -1,0 +1,397 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model GreenMeadowsPortal.ViewModels.UserManagementViewModel
+
+@{
+    ViewData["Title"] = "User Management - Green Meadows Portal";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Meadows | User Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/admin.css">
+    <link rel="stylesheet" href="~/css/user-management.css">
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Admin Sidebar Navigation -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Green Meadows</h3>
+                <div class="sidebar-logo">GM</div>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <img src="@(string.IsNullOrEmpty(Model.CurrentUserProfileImageUrl) ? "/images/default-avatar.png" : Model.CurrentUserProfileImageUrl)" alt="Admin Avatar">
+                </div>
+                <div class="user-info">
+                    <h4>@Model.FirstName</h4>
+                    <p>@Model.Role</p>
+                </div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li>
+                    <a asp-controller="Dashboard" asp-action="AdminDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                </li>
+                <li class="active">
+                    <a asp-controller="Dashboard" asp-action="UserManagement"><i class="fas fa-users"></i> User Management</a>
+                </li>
+                <li>
+                    <a href="/Admin/Announcements"><i class="fas fa-bullhorn"></i> Announcements</a>
+                </li>
+                <li>
+                    <a asp-controller="Dashboard" asp-action="Billing"><i class="fas fa-file-invoice-dollar"></i> Billing</a>
+                </li>
+                <li>
+                    <a href="/Facilities"><i class="fas fa-swimming-pool"></i> Facilities</a>
+                </li>
+                <li>
+                    <a href="/ServiceRequests"><i class="fas fa-tools"></i> Service Requests</a>
+                </li>
+                <li>
+                    <a href="/Documents"><i class="fas fa-file-alt"></i> Documents</a>
+                </li>
+                <li>
+                    <a href="/Forum"><i class="fas fa-comments"></i> Community Forum</a>
+                </li>
+                <li>
+                    <a href="/Security"><i class="fas fa-shield-alt"></i> Security</a>
+                </li>
+                <li>
+                    <a href="/Events"><i class="fas fa-calendar-alt"></i> Events</a>
+                </li>
+                <li>
+                    <a href="/Reports"><i class="fas fa-chart-bar"></i> Reports</a>
+                </li>
+                <li>
+                    <a href="/Polls"><i class="fas fa-poll"></i> Polls & Surveys</a>
+                </li>
+                <li>
+                    <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a asp-controller="Account" asp-action="Profile"><i class="fas fa-user-cog"></i> Profile</a>
+                <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i>Logout</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <!-- Top Navigation -->
+            <header class="top-navbar">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="search-bar">
+                    <input type="text" placeholder="Search...">
+                    <button><i class="fas fa-search"></i></button>
+                </div>
+
+                <div class="navbar-right">
+                    <div class="notification-bell">
+                        <a asp-controller="Notification" asp-action="Index">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-count">@Model.NotificationCount</span>
+                        </a>
+                    </div>
+                    <div class="inbox-icon">
+                        <a asp-controller="Contact" asp-action="Inbox">
+                            <i class="fas fa-envelope"></i>
+                            <span class="unread-messages" id="unread-message-count">0</span>
+                        </a>
+                    </div>
+                    <div class="user-dropdown">
+                        <img src="@(string.IsNullOrEmpty(Model.CurrentUserProfileImageUrl) ? "/images/default-avatar.png" : Model.CurrentUserProfileImageUrl)" alt="Admin Avatar">
+                        <span>@Model.FirstName</span>
+                        <i class="fas fa-chevron-down"></i>
+
+                        <div class="dropdown-menu">
+                            <a asp-controller="Account" asp-action="Profile"><i class="fas fa-user-cog"></i> My Profile</a>
+                            <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                <a asp-controller="Account" asp-action="Login"><i class="fas fa-sign-out-alt"></i>Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="main-content">
+                <div class="page-header">
+                    <h1>User Management</h1>
+                    <div>
+                        <a asp-controller="UserManagement" asp-action="AddUser" class="btn primary-btn">
+                            <i class="fas fa-plus"></i> Add New User
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Success Message (if available in TempData) -->
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                        <button class="close-alert"><i class="fas fa-times"></i></button>
+                    </div>
+                }
+
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+                        <button class="close-alert"><i class="fas fa-times"></i></button>
+                    </div>
+                }
+
+                <!-- All Users Section -->
+                <div class="content-section">
+                    <div class="section-header">
+                        <h2>All Users</h2>
+                    </div>
+
+                    <div class="users-filters-section">
+                        <div class="filters">
+                            <div class="filter-group">
+                                <label for="role-filter">Role:</label>
+                                <select id="role-filter" class="filter-select">
+                                    <option value="All Roles">All Roles</option>
+                                    <option value="Admin">Administrator</option>
+                                    <option value="Staff">Staff</option>
+                                    <option value="Homeowner">Homeowner</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="status-filter">Status:</label>
+                                <select id="status-filter" class="filter-select">
+                                    <option value="All Statuses">All Statuses</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                    <option value="Suspended">Suspended</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="search-section">
+                            <input type="text" id="user-search" placeholder="Search by name, email...">
+                            <button><i class="fas fa-search"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="users-table-section">
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Registered</th>
+                                    <th>Last Login</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Users != null && Model.Users.Any())
+                                {
+                                    foreach (var user in Model.Users)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="user-cell">
+                                                    <div class="user-avatar">
+                                                        <img src="@(string.IsNullOrEmpty(user.ProfileImageUrl) ? "/images/default-avatar.png" : user.ProfileImageUrl)" alt="@user.FullName">
+                                                    </div>
+                                                    <div class="user-info">
+                                                        <div class="user-name">@user.FullName</div>
+                                                        <div class="user-email">@user.Email</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>@user.Role</td>
+                                            <td><span class="status @user.Status.ToLower()">@user.Status</span></td>
+                                            <td>@user.MemberSince</td>
+                                            <td>@user.LastLogin</td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <a asp-controller="UserManagement" asp-action="EditUser" asp-route-id="@user.Id" class="action-btn edit" title="Edit User">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <button class="action-btn orange reset-password-btn" data-user-id="@user.Id" title="Reset Password">
+                                                        <i class="fas fa-key"></i>
+                                                    </button>
+                                                    <button class="action-btn red delete-user-btn" data-user-id="@user.Id" title="Delete User">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="6" class="no-data">No users found</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination-section">
+                        <div class="showing-entries">
+                            @if (Model.TotalRecords > 0)
+                            {
+                                <span>Showing @Model.PageStartRecord to @Model.PageEndRecord of @Model.TotalRecords entries</span>
+                            }
+                            else
+                            {
+                                <span>No entries to show</span>
+                            }
+                        </div>
+                        <div class="pagination">
+                            @if (Model.TotalPages > 1)
+                            {
+                                <a asp-controller="Dashboard" asp-action="UserManagement" asp-route-page="@(Model.CurrentPage > 1 ? Model.CurrentPage - 1 : 1)" class="pagination-btn @(Model.CurrentPage <= 1 ? "disabled" : "")">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+
+                                @for (int i = 1; i <= Model.TotalPages; i++)
+                                {
+                                    <a asp-controller="Dashboard" asp-action="UserManagement" asp-route-page="@i" class="pagination-btn @(Model.CurrentPage == i ? "active" : "")">@i</a>
+                                }
+
+                                <a asp-controller="Dashboard" asp-action="UserManagement" asp-route-page="@(Model.CurrentPage < Model.TotalPages ? Model.CurrentPage + 1 : Model.TotalPages)" class="pagination-btn @(Model.CurrentPage >= Model.TotalPages ? "disabled" : "")">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="pagination-btn active">1</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="main-footer">
+                <div class="footer-content">
+                    <p>&copy; @DateTime.Now.Year Green Meadows Subdivision. All rights reserved.</p>
+                    <div class="footer-links">
+                        <a href="/Help">Help Center</a>
+                        <a href="/Privacy">Privacy Policy</a>
+                        <a href="/Terms">Terms of Service</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="reset-password-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Reset Password</h2>
+                <button type="button" class="close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form asp-controller="UserManagement" asp-action="ResetPassword" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="reset-user-id" name="userId" />
+
+                    <div class="form-group">
+                        <label for="new-password">New Password</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="new-password" name="newPassword" class="form-control" required />
+                            <button type="button" class="toggle-password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="force-change" name="forcePasswordChange" class="form-check-input" checked />
+                            <label for="force-change">Force password change on next login</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="send-email" name="sendEmail" class="form-check-input" checked />
+                            <label for="send-email">Send password reset email to user</label>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn secondary-btn close-modal-btn">Cancel</button>
+                        <button type="submit" class="btn primary-btn">Reset Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Updated Delete User Modal HTML -->
+    <div class="modal" id="delete-confirmation-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Confirm Deletion</h2>
+                <button type="button" class="close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this user? This action cannot be undone.</p>
+                <form id="delete-user-form" method="post" action="/UserManagement/DeleteUser">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="delete-user-id" name="id" />
+                    <div class="form-actions">
+                        <button type="button" class="btn secondary-btn close-modal-btn">Cancel</button>
+                        <button type="submit" class="btn danger-btn" id="confirm-delete">Delete User</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        // Initialize dropdown functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // User dropdown toggle
+            const userDropdown = document.querySelector('.user-dropdown');
+            if (userDropdown) {
+                userDropdown.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    this.classList.toggle('open');
+                    const dropdownMenu = this.querySelector('.dropdown-menu');
+                    if (dropdownMenu) {
+                        dropdownMenu.classList.toggle('show');
+                    }
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!userDropdown.contains(event.target)) {
+                        userDropdown.classList.remove('open');
+                        const dropdownMenu = userDropdown.querySelector('.dropdown-menu');
+                        if (dropdownMenu) {
+                            dropdownMenu.classList.remove('show');
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+    <script src="~/js/admin.js"></script>
+    <script src="~/js/user-management.js"></script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+﻿@* Views/Shared/_TopNavigation.cshtml *@
+@using GreenMeadowsPortal.Services
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<GreenMeadowsPortal.Models.ApplicationUser> UserManager
+@inject INotificationService NotificationService
+
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var userName = user?.FirstName ?? "User";
+    var userRole = "";
+    var profileImage = user?.ProfileImageUrl ?? "/images/default-avatar.png";
+    int notificationCount = 0;
+
+    if (user != null)
+    {
+        var roles = await UserManager.GetRolesAsync(user);
+        userRole = roles.FirstOrDefault() ?? "User";
+        notificationCount = await NotificationService.GetUnreadCountAsync(user.Id);
+    }
+}
+
+<header class="top-navbar">
+    <button id="sidebar-toggle" class="sidebar-toggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    @{
+        var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+        var action = ViewContext.RouteData.Values["action"]?.ToString();
+        var isDashboard = controller == "Dashboard" && action?.Contains("Dashboard") == true;
+    }
+
+    @if (!isDashboard)
+    {
+        <div class="back-button">
+            <a asp-controller="Dashboard" asp-action="@(userRole == "Admin" ? "AdminDashboard" : (userRole == "Staff" ? "StaffDashboard" : "HomeownerDashboard"))">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="search-bar">
+            <input type="text" placeholder="Search...">
+            <button><i class="fas fa-search"></i></button>
+        </div>
+    }
+
+    <div class="navbar-right">
+        <div class="notification-bell">
+            <a asp-controller="Notification" asp-action="Index">
+                <i class="fas fa-bell"></i>
+                <span class="notification-count">@notificationCount</span>
+            </a>
+        </div>
+        <div class="inbox-icon">
+            <a asp-controller="Contact" asp-action="Inbox">
+                <i class="fas fa-envelope"></i>
+                <span class="unread-messages" id="unread-message-count">0</span>
+            </a>
+        </div>
+
+        <div class="user-dropdown">
+            <img src="@profileImage" alt="User Avatar">
+            <span>@userName</span>
+            <i class="fas fa-chevron-down"></i>
+
+            <div class="dropdown-menu">
+                <a asp-controller="Dashboard" asp-action="Profile"><i class="fas fa-user"></i> My Profile</a>
+                <a href="/Settings"><i class="fas fa-cog"></i> Settings</a>
+                <a asp-controller="Account" asp-action="Logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </div>
+</header>

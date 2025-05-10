@@ -1,0 +1,118 @@
+﻿@* Views/Shared/_Sidebar.cshtml *@
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<GreenMeadowsPortal.Models.ApplicationUser> UserManager
+
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var userName = user?.FirstName ?? "User";
+    var userRole = "";
+    var profileImage = user?.ProfileImageUrl ?? "/images/default-avatar.png";
+
+    if (user != null)
+    {
+        var roles = await UserManager.GetRolesAsync(user);
+        userRole = roles.FirstOrDefault() ?? "User";
+    }
+}
+
+<nav id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+        <h3>Green Meadows</h3>
+        <div class="sidebar-logo">GM</div>
+    </div>
+
+    <div class="user-profile">
+        <div class="user-avatar">
+            <img src="@profileImage" alt="@userName Avatar">
+        </div>
+        <div class="user-info">
+            <h4>@userName</h4>
+            <p>@userRole</p>
+        </div>
+    </div>
+
+    <ul class="sidebar-menu">
+        @if (userRole == "Admin")
+        {
+            <li class="@(ViewContext.RouteData.Values["action"]?.ToString() == "AdminDashboard" ? "active" : "")">
+                <a asp-controller="Dashboard" asp-action="AdminDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            </li>
+            <li class="@(ViewContext.RouteData.Values["action"]?.ToString() == "UserManagement" ? "active" : "")">
+                <a asp-controller="Dashboard" asp-action="UserManagement"><i class="fas fa-users"></i> User Management</a>
+            </li>
+        }
+        else if (userRole == "Staff")
+        {
+            <li class="@(ViewContext.RouteData.Values["action"]?.ToString() == "StaffDashboard" ? "active" : "")">
+                <a asp-controller="Dashboard" asp-action="StaffDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            </li>
+        }
+        else
+        {
+            <li class="@(ViewContext.RouteData.Values["action"]?.ToString() == "HomeownerDashboard" ? "active" : "")">
+                <a asp-controller="Dashboard" asp-action="HomeownerDashboard"><i class="fas fa-home"></i> Dashboard</a>
+            </li>
+        }
+
+        <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Announcement" ? "active" : "")">
+            <a asp-controller="Announcement" asp-action="Index"><i class="fas fa-bullhorn"></i> Announcements</a>
+        </li>
+        <li class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Billing" ? "active" : "")">
+            <a asp-controller="Dashboard" asp-action="Billing"><i class="fas fa-file-invoice-dollar"></i> Billing</a>
+        </li>
+        <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "ServiceRequests" ? "active" : "")">
+            <a asp-controller="ServiceRequests" asp-action="Index"><i class="fas fa-tools"></i> Service Requests</a>
+        </li>
+        <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Document" ? "active" : "")">
+            <a asp-controller="Document" asp-action="Index"><i class="fas fa-file-alt"></i> Documents</a>
+        </li>
+        <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Forum" ? "active" : "")">
+            <a asp-controller="Forum" asp-action="Index"><i class="fas fa-comments"></i> Community Forum</a>
+        </li>
+        <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Contact" ? "active" : "")">
+            <a asp-controller="Contact" asp-action="Index"><i class="fas fa-address-book"></i> Contacts</a>
+        </li>
+        <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Event" ? "active" : "")">
+            <a asp-controller="Event" asp-action="Index"><i class="fas fa-calendar-alt"></i> Events</a>
+        </li>
+
+        @if (userRole == "Admin")
+        {
+            <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Security" ? "active" : "")">
+                <a asp-controller="Security" asp-action="Index"><i class="fas fa-shield-alt"></i> Security</a>
+            </li>
+            <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Report" ? "active" : "")">
+                <a asp-controller="Report" asp-action="Index"><i class="fas fa-chart-bar"></i> Reports</a>
+            </li>
+            <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Poll" ? "active" : "")">
+                <a asp-controller="Poll" asp-action="Index"><i class="fas fa-poll"></i> Polls & Surveys</a>
+            </li>
+            <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Feedback" ? "active" : "")">
+                <a asp-controller="Feedback" asp-action="Index"><i class="fas fa-comment-dots"></i> Feedback</a>
+            </li>
+        }
+        else if (userRole == "Staff")
+        {
+            <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Report" ? "active" : "")">
+                <a asp-controller="Report" asp-action="Index"><i class="fas fa-chart-bar"></i> Reports</a>
+            </li>
+            <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Poll" ? "active" : "")">
+                <a asp-controller="Poll" asp-action="Index"><i class="fas fa-poll"></i> Polls & Surveys</a>
+            </li>
+            <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Feedback" ? "active" : "")">
+                <a asp-controller="Feedback" asp-action="Index"><i class="fas fa-comment-dots"></i> Feedback</a>
+            </li>
+        }
+        else
+        {
+            <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Feedback" ? "active" : "")">
+                <a asp-controller="Feedback" asp-action="Index"><i class="fas fa-comment-dots"></i> Feedback</a>
+            </li>
+        }
+    </ul>
+
+    <div class="sidebar-footer">
+        <a asp-controller="Dashboard" asp-action="Profile"><i class="fas fa-user-cog"></i> Profile</a>
+        <a asp-controller="Account" asp-action="Logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+</nav>

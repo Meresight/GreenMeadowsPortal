@@ -1,0 +1,145 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@using GreenMeadowsPortal.Models
+@model ServiceRequestListViewModel
+
+@{
+    ViewData["Title"] = "Service Requests - Green Meadows Portal";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/service-requests.css" />
+}
+
+<div class="page-header">
+    <h1>Service Requests</h1>
+    <nav class="breadcrumb">
+        <a asp-controller="Dashboard" asp-action="@(Model.Role == "Admin" ? "AdminDashboard" : (Model.Role == "Staff" ? "StaffDashboard" : "HomeownerDashboard"))">Dashboard</a> / Service Requests
+    </nav>
+</div>
+
+<!-- Filter and Action Section -->
+<div class="action-bar">
+    <div class="filter-tabs">
+        <a asp-action="Index" asp-route-statusFilter="all" class="filter-tab @(Model.StatusFilter == "all" ? "active" : "")">
+            <span>All Requests</span>
+        </a>
+        <a asp-action="Index" asp-route-statusFilter="open" class="filter-tab @(Model.StatusFilter == "open" ? "active" : "")">
+            <span>Open</span>
+            <span class="count">@Model.TotalOpenRequests</span>
+        </a>
+        <a asp-action="Index" asp-route-statusFilter="closed" class="filter-tab @(Model.StatusFilter == "closed" ? "active" : "")">
+            <span>Closed</span>
+            <span class="count">@Model.TotalClosedRequests</span>
+        </a>
+    </div>
+
+    <div class="actions">
+        <a asp-action="Create" class="btn primary-btn">
+            <i class="fas fa-plus"></i> New Request
+        </a>
+    </div>
+</div>
+
+<!-- Service Requests List -->
+<div class="content-section">
+    @if (Model.Requests.Count == 0)
+    {
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-clipboard-check"></i>
+            </div>
+            <h3>No Service Requests</h3>
+            @if (Model.StatusFilter == "all")
+            {
+                <p>You haven't submitted any service requests yet.</p>
+            }
+            else if (Model.StatusFilter == "open")
+            {
+                <p>There are no open service requests at this time.</p>
+            }
+            else
+            {
+                <p>There are no closed service requests to display.</p>
+            }
+            <a asp-action="Create" class="btn primary-btn mt-4">
+                <i class="fas fa-plus"></i> Create Request
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="service-requests-list">
+            <div class="request-cards">
+                @foreach (var request in Model.Requests)
+                {
+                    string statusClass = request.Status == ServiceRequestStatus.Open ? "status-open" : "status-closed";
+                    string statusIcon = request.Status == ServiceRequestStatus.Open ? "fa-clock" : "fa-check-circle";
+
+                    <div class="request-card @statusClass">
+                        <div class="request-header">
+                            <div class="request-issue-type">
+                                @Html.Raw(GetIssueTypeIcon(request.IssueType))
+                                <span>@request.IssueType</span>
+                            </div>
+                            <div class="request-status">
+                                <i class="fas @statusIcon"></i>
+                                <span>@request.Status.ToString()</span>
+                            </div>
+                        </div>
+
+                        <div class="request-content">
+                            <div class="request-details">
+                                <p class="request-description">@request.Description</p>
+                                <div class="request-meta">
+                                    <div class="meta-item">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>@(string.IsNullOrEmpty(request.Location) ? "Not specified" : request.Location)</span>
+                                    </div>
+                                    <div class="meta-item">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        <span>@request.DateSubmitted.ToString("MMM dd, yyyy")</span>
+                                    </div>
+                                    @if (Model.Role == "Admin" || Model.Role == "Staff")
+                                    {
+                                        <div class="meta-item">
+                                            <i class="fas fa-user"></i>
+                                            <span>@request.Requester.FirstName @request.Requester.LastName</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="request-actions">
+                                <a asp-action="Details" asp-route-id="@request.Id" class="btn small-btn">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@functions {
+    string GetIssueTypeIcon(string issueType)
+    {
+        string iconClass = issueType.ToLower() switch
+        {
+            "plumbing" => "fa-faucet",
+            "electrical" => "fa-bolt",
+            "hvac" => "fa-temperature-high",
+            "security" => "fa-shield-alt",
+            "landscaping" => "fa-leaf",
+            "pest control" => "fa-bug",
+            "cleaning" => "fa-broom",
+            "appliance" => "fa-blender",
+            _ => "fa-tools"
+        };
+
+        return $"<i class=\"fas {iconClass}\"></i>";
+    }
+}

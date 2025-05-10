@@ -1,0 +1,195 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@using GreenMeadowsPortal.Models
+@model ServiceRequest
+
+@{
+    ViewData["Title"] = "Service Request Details - Green Meadows Portal";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin.css" />
+    <link rel="stylesheet" href="~/css/service-requests.css" />
+}
+
+<div class="page-header">
+    <h1>Service Request #@Model.Id</h1>
+    <nav class="breadcrumb">
+        <a asp-controller="Dashboard" asp-action="@(ViewBag.Role == "Admin" ? "AdminDashboard" : (ViewBag.Role == "Staff" ? "StaffDashboard" : "HomeownerDashboard"))">Dashboard</a> /
+        <a asp-controller="ServiceRequests" asp-action="Index">Service Requests</a> / #@Model.Id
+    </nav>
+</div>
+
+<div class="action-bar">
+    <div class="request-status-badge @(Model.Status == ServiceRequestStatus.Open ? "status-open" : "status-closed")">
+        <i class="fas @(Model.Status == ServiceRequestStatus.Open ? "fa-clock" : "fa-check-circle")"></i>
+        <span>@Model.Status.ToString()</span>
+    </div>
+
+    <div class="actions">
+        <a asp-action="Index" class="btn secondary-btn">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+
+        @if (ViewBag.CanClose)
+        {
+            <button id="closeRequestBtn" class="btn primary-btn">
+                <i class="fas fa-check"></i> Mark as Complete
+            </button>
+        }
+
+        @if (ViewBag.CanReopen)
+        {
+            <form asp-action="Reopen" asp-route-id="@Model.Id" method="post" style="display: inline;">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn primary-btn">
+                    <i class="fas fa-redo"></i> Reopen Request
+                </button>
+            </form>
+        }
+    </div>
+</div>
+
+<div class="dashboard-stats" style="margin-bottom: 2rem;">
+    <div class="stat-card" style="width: 100%; max-width: 600px; margin: 0 auto;">
+        <div class="stat-details">
+            <div class="request-issue-type" style="font-size: 1.5rem; margin-bottom: 0.5rem;">
+                @Html.Raw(GetIssueTypeIcon(Model.IssueType))
+                <strong style="margin-left: 0.5rem;">@Model.IssueType Issue</strong>
+            </div>
+            <div class="submission-date" style="margin-bottom: 1rem; color: var(--text-medium);">
+                <i class="fas fa-calendar"></i>
+                <span>Submitted on @Model.DateSubmitted.ToString("MMMM dd, yyyy")</span>
+            </div>
+            <div class="details-row"><span class="details-label">Description:</span> <span class="details-value">@Model.Description</span></div>
+            <div class="details-row"><span class="details-label">Location:</span> <span class="details-value">@(string.IsNullOrEmpty(Model.Location) ? "Not specified" : Model.Location)</span></div>
+            <div class="details-row"><span class="details-label">Requester:</span> <span class="details-value">@(Model.Requester != null ? Model.Requester.FirstName + " " + Model.Requester.LastName : "Unknown")</span></div>
+            @if (!string.IsNullOrEmpty(Model.Requester?.Unit))
+            {
+                <div class="details-row"><span class="details-label">Unit:</span> <span class="details-value">@Model.Requester.Unit</span></div>
+            }
+            @if (Model.AssignedTo != null)
+            {
+                <div class="details-row"><span class="details-label">Assigned To:</span> <span class="details-value">@Model.AssignedTo.FirstName @Model.AssignedTo.LastName</span></div>
+            }
+            @if (Model.DateClosed.HasValue)
+            {
+                <div class="details-row"><span class="details-label">Completion Date:</span> <span class="details-value">@Model.DateClosed.Value.ToString("MMMM dd, yyyy")</span></div>
+            }
+            @if (!string.IsNullOrEmpty(Model.AdminNotes))
+            {
+                <div class="details-row"><span class="details-label">Notes:</span> <span class="details-value">@Model.AdminNotes</span></div>
+            }
+            @if (ViewBag.CanAssignStaff && ViewBag.AvailableStaff != null && ((IEnumerable<GreenMeadowsPortal.Models.ApplicationUser>)ViewBag.AvailableStaff).Any())
+            {
+                <div class="details-row">
+                    <form asp-action="AssignStaff" asp-route-id="@Model.Id" method="post" style="display: flex; align-items: center; gap: 1rem;">
+                        @Html.AntiForgeryToken()
+                        <label for="staffId" class="details-label">Assign Staff:</label>
+                        <select id="staffId" name="staffId" class="form-control" required>
+                            <option value="">-- Select Staff --</option>
+                            @foreach (var staff in (IEnumerable<GreenMeadowsPortal.Models.ApplicationUser>)ViewBag.AvailableStaff)
+                            {
+                                <option value="@staff.Id">@staff.FirstName @staff.LastName (@staff.Email)</option>
+                            }
+                        </select>
+                        <button type="submit" class="btn primary-btn">Assign</button>
+                    </form>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Close Request Modal (Admin/Staff only) -->
+@if (ViewBag.CanClose)
+{
+    <div id="closeRequestModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Mark Service Request as Complete</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form asp-action="Close" asp-route-id="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="form-group">
+                        <label for="adminNotes">Completion Notes (optional)</label>
+                        <textarea id="adminNotes" name="adminNotes" class="form-control" rows="4" placeholder="Enter any notes about how the issue was resolved..."></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn secondary-btn close-modal-btn">Cancel</button>
+                        <button type="submit" class="btn primary-btn">
+                            <i class="fas fa-check"></i> Mark as Complete
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@functions {
+    string GetIssueTypeIcon(string issueType)
+    {
+        string iconClass = issueType.ToLower() switch
+        {
+            "plumbing" => "fa-faucet",
+            "electrical" => "fa-bolt",
+            "hvac" => "fa-temperature-high",
+            "security" => "fa-shield-alt",
+            "landscaping" => "fa-leaf",
+            "pest control" => "fa-bug",
+            "cleaning" => "fa-broom",
+            "appliance" => "fa-blender",
+            _ => "fa-tools"
+        };
+
+        return $"<i class=\"fas {iconClass}\"></i>";
+    }
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('closeRequestModal');
+            const closeRequestBtn = document.getElementById('closeRequestBtn');
+            const closeModalBtn = document.querySelector('.close-modal');
+            const closeModalBtnSecondary = document.querySelector('.close-modal-btn');
+
+            // If these elements exist
+            if (modal && closeRequestBtn) {
+                // Open modal
+                closeRequestBtn.addEventListener('click', function() {
+                    modal.style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                });
+
+                // Close modal with X button
+                if (closeModalBtn) {
+                    closeModalBtn.addEventListener('click', function() {
+                        modal.style.display = 'none';
+                        document.body.style.overflow = 'auto';
+                    });
+                }
+
+                // Close modal with Cancel button
+                if (closeModalBtnSecondary) {
+                    closeModalBtnSecondary.addEventListener('click', function() {
+                        modal.style.display = 'none';
+                        document.body.style.overflow = 'auto';
+                    });
+                }
+
+                // Close modal when clicking outside
+                window.addEventListener('click', function(event) {
+                    if (event.target === modal) {
+                        modal.style.display = 'none';
+                        document.body.style.overflow = 'auto';
+                    }
+                });
+            }
+        });
+    </script>
+}
