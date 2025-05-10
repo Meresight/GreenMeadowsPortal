@@ -23,11 +23,11 @@ namespace GreenMeadowsPortal.ViewModels
 
         // Upcoming events
         public int UpcomingEventsCount { get; set; }
-        public List<EventViewModel> UpcomingEvents { get; set; } = new List<EventViewModel>();
+        public List<DashboardEventViewModel> UpcomingEvents { get; set; } = new List<DashboardEventViewModel>();
     }
 
     // Simple event view model for the dashboard
-    public class EventViewModel
+    public class DashboardEventViewModel
     {
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;

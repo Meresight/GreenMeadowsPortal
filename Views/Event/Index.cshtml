@@ -1,0 +1,284 @@
+﻿@* Views/Event/Index.cshtml *@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@using GreenMeadowsPortal.Models
+@model EventListViewModel
+
+@{
+    ViewData["Title"] = "Events Calendar";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+}
+
+<div class="page-header">
+    <div class="page-title">
+        <h1><i class="fas fa-calendar-alt"></i> Events Calendar</h1>
+        <nav class="breadcrumb">
+            <a asp-controller="Dashboard" asp-action="@(Model.Role == "Admin" ? "AdminDashboard" : (Model.Role == "Staff" ? "StaffDashboard" : "HomeownerDashboard"))">Dashboard</a>
+            <span>/</span>
+            <span>Events</span>
+        </nav>
+    </div>
+    <div class="page-actions">
+        @if (Model.CanCreateEvents)
+        {
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Event
+            </a>
+        }
+        <a asp-action="Calendar" class="btn btn-secondary">
+            <i class="fas fa-calendar"></i> Calendar View
+        </a>
+    </div>
+</div>
+
+<!-- Event Quick Stats -->
+<div class="event-stats">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-calendar-day"></i>
+        </div>
+        <div class="stat-details">
+            <h3>@Model.TodayEvents.Count</h3>
+            <p>Today's Events</p>
+        </div>
+        <a href="#today-events" class="stat-footer">View <i class="fas fa-arrow-right"></i></a>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-calendar-week"></i>
+        </div>
+        <div class="stat-details">
+            <h3>@Model.ThisWeekEvents.Count</h3>
+            <p>This Week</p>
+        </div>
+        <a href="#week-events" class="stat-footer">View <i class="fas fa-arrow-right"></i></a>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="stat-details">
+            <h3>@Model.UpcomingEvents.Count</h3>
+            <p>Upcoming Events</p>
+        </div>
+        <a href="#upcoming-events" class="stat-footer">View <i class="fas fa-arrow-right"></i></a>
+    </div>
+</div>
+
+<!-- Today's Events -->
+@if (Model.TodayEvents.Any())
+{
+    <div class="event-section" id="today-events">
+        <div class="section-header">
+            <h2><i class="fas fa-calendar-day"></i> Today's Events</h2>
+        </div>
+        <div class="events-grid">
+            @foreach (var evt in Model.TodayEvents)
+            {
+                <div class="event-card event-today">
+                    <div class="event-header">
+                        <div class="event-type-badge event-@evt.EventTypeEnum.ToString().ToLower()">
+                            @evt.EventTypeEnum
+                        </div>
+                        <div class="event-time">@evt.EventTimeFormatted</div>
+                    </div>
+                    <div class="event-content">
+                        <h3>@evt.Title</h3>
+                        <div class="event-info">
+                            <span><i class="fas fa-map-marker-alt"></i> @evt.Location</span>
+                            <span><i class="fas fa-tag"></i> @evt.Category</span>
+                            @if (evt.RequiresRegistration)
+                            {
+                                <span><i class="fas fa-user-check"></i> @evt.AttendeeCount@(evt.MaxAttendees.HasValue ? "/" + evt.MaxAttendees.Value : "") attendees</span>
+                            }
+                        </div>
+                        <p class="event-description">@(evt.Description.Length > 100 ? evt.Description.Substring(0, 100) + "..." : evt.Description)</p>
+                    </div>
+                    <div class="event-footer">
+                        <a asp-action="Details" asp-route-id="@evt.Id" class="btn btn-sm btn-primary">View Details</a>
+                        @if (evt.RequiresRegistration && !evt.IsUserRegistered)
+                        {
+                            <a asp-action="Register" asp-route-id="@evt.Id" class="btn btn-sm btn-success" onclick="event.preventDefault(); document.getElementById('register-form-@evt.Id').submit();">
+                                Register
+                            </a>
+                            <form id="register-form-@evt.Id" method="post" asp-action="Register" asp-route-id="@evt.Id" style="display: none;">
+                                @Html.AntiForgeryToken()
+                            </form>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- This Week's Events -->
+@if (Model.ThisWeekEvents.Any())
+{
+    <div class="event-section" id="week-events">
+        <div class="section-header">
+            <h2><i class="fas fa-calendar-week"></i> This Week's Events</h2>
+        </div>
+        <div class="events-timeline">
+            @foreach (var day in Model.ThisWeekEvents.GroupBy(e => e.EventDateTime.Date).OrderBy(g => g.Key))
+            {
+                <div class="timeline-day">
+                    <div class="timeline-date">
+                        <div class="date-day">@day.Key.ToString("dd")</div>
+                        <div class="date-month">@day.Key.ToString("MMM")</div>
+                        <div class="date-weekday">@day.Key.ToString("ddd")</div>
+                    </div>
+                    <div class="timeline-events">
+                        @foreach (var evt in day.OrderBy(e => e.StartTime))
+                        {
+                            <div class="timeline-event">
+                                <div class="event-time-indicator">@evt.EventTimeFormatted</div>
+                                <div class="event-details">
+                                    <h4>@evt.Title</h4>
+                                    <div class="event-meta">
+                                        <span><i class="fas fa-map-marker-alt"></i> @evt.Location</span>
+                                        <span class="event-type-badge event-@evt.EventTypeEnum.ToString().ToLower()">@evt.EventTypeEnum</span>
+                                    </div>
+                                    <a asp-action="Details" asp-route-id="@evt.Id" class="event-link">View Details</a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- Upcoming Events -->
+@if (Model.UpcomingEvents.Any())
+{
+    <div class="event-section" id="upcoming-events">
+        <div class="section-header">
+            <h2><i class="fas fa-calendar-check"></i> Upcoming Events</h2>
+            <div class="section-filters">
+                <select class="form-select" onchange="filterEvents(this.value)">
+                    <option value="all">All Categories</option>
+                    <option value="community">Community</option>
+                    <option value="maintenance">Maintenance</option>
+                    <option value="recreation">Recreation</option>
+                    <option value="meeting">Meeting</option>
+                    <option value="social">Social</option>
+                    <option value="holiday">Holiday</option>
+                </select>
+                <select class="form-select" onchange="filterEventsByType(this.value)">
+                    <option value="all">All Types</option>
+                    @foreach (EventType type in Enum.GetValues<EventType>())
+                    {
+                        <option value="@type.ToString().ToLower()">@type</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="events-list">
+            @foreach (var evt in Model.UpcomingEvents.Skip(Model.TodayEvents.Count + Model.ThisWeekEvents.Where(e => e.EventDateTime.Date > DateTime.Today).Count()))
+            {
+                <div class="event-list-item @(evt.Status == EventStatus.Cancelled ? "cancelled" : "")" data-category="@evt.Category.ToLower()" data-type="@evt.EventTypeEnum.ToString().ToLower()">
+                    <div class="event-date-badge">
+                        <div class="badge-day">@evt.EventDateTime.Day</div>
+                        <div class="badge-month">@evt.EventDateTime.ToString("MMM")</div>
+                    </div>
+                    <div class="event-content">
+                        <div class="event-header">
+                            <h3>@evt.Title</h3>
+                            <div class="event-type-badge event-@evt.EventTypeEnum.ToString().ToLower()">@evt.EventTypeEnum</div>
+                        </div>
+                        <div class="event-meta">
+                            <span><i class="fas fa-clock"></i> @evt.EventTimeFormatted</span>
+                            <span><i class="fas fa-map-marker-alt"></i> @evt.Location</span>
+                            <span><i class="fas fa-tag"></i> @evt.Category</span>
+                            @if (evt.RequiresRegistration)
+                            {
+                                <span class="@(evt.HasAvailableSpots ? "registration-open" : "registration-full")">
+                                    <i class="fas fa-user-check"></i> @evt.AttendeeCount@(evt.MaxAttendees.HasValue ? "/" + evt.MaxAttendees.Value : "")
+                                </span>
+                            }
+                        </div>
+                        <p class="event-description">@(evt.Description.Length > 120 ? evt.Description.Substring(0, 120) + "..." : evt.Description)</p>
+                    </div>
+                    <div class="event-actions">
+                        <a asp-action="Details" asp-route-id="@evt.Id" class="btn btn-sm">View Details</a>
+                        @if (evt.RequiresRegistration && !evt.IsUserRegistered && evt.HasAvailableSpots)
+                        {
+                            <form method="post" asp-action="Register" asp-route-id="@evt.Id" style="display: inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-success">Register</button>
+                            </form>
+                        }
+                        else if (evt.RequiresRegistration && evt.IsUserRegistered)
+                        {
+                            <span class="status-badge registered">Registered</span>
+                        }
+                        else if (evt.RequiresRegistration && !evt.HasAvailableSpots)
+                        {
+                            <span class="status-badge full">Full</span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- No Events Message -->
+@if (!Model.TodayEvents.Any() && !Model.ThisWeekEvents.Any() && !Model.UpcomingEvents.Any())
+{
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-calendar-times"></i>
+        </div>
+        <h3>No Events Scheduled</h3>
+        <p>There are currently no events scheduled.</p>
+        @if (Model.CanCreateEvents)
+        {
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create First Event
+            </a>
+        }
+    </div>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/events.css">
+}
+
+@section Scripts {
+    <script>
+        function filterEvents(category) {
+            const items = document.querySelectorAll('.event-list-item');
+            items.forEach(item => {
+                if (category === 'all' || item.dataset.category === category) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function filterEventsByType(type) {
+            const items = document.querySelectorAll('.event-list-item');
+            items.forEach(item => {
+                if (type === 'all' || item.dataset.type === type) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // Auto-hide alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    alert.style.display = 'none';
+                });
+            }, 5000);
+        });
+    </script>
+}

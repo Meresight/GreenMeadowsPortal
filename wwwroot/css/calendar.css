@@ -1,0 +1,159 @@
+﻿/* Calendar-specific styles - wwwroot/css/calendar.css */
+
+/* Calendar Modal Styles */
+#dayDetailsModal .modal-content {
+    max-width: 500px;
+}
+
+.modal-event-item {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+    .modal-event-item:last-child {
+        margin-bottom: 0;
+    }
+
+.no-events {
+    text-align: center;
+    color: var(--text-medium);
+    font-style: italic;
+    padding: 2rem;
+}
+
+/* Calendar Event Colors */
+.calendar-event.event-community {
+    background-color: var(--event-community);
+}
+
+.calendar-event.event-maintenance {
+    background-color: var(--event-maintenance);
+}
+
+.calendar-event.event-recreation {
+    background-color: var(--event-recreation);
+}
+
+.calendar-event.event-meeting {
+    background-color: var(--event-meeting);
+}
+
+.calendar-event.event-social {
+    background-color: var(--event-social);
+}
+
+.calendar-event.event-holiday {
+    background-color: var(--event-holiday);
+}
+
+.calendar-event.event-emergency {
+    background-color: var(--event-emergency);
+}
+
+.calendar-event.event-announcement {
+    background-color: var(--event-announcement);
+}
+
+/* Calendar month navigation animations */
+@keyframes slideLeft {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideRight {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.calendar-body {
+    animation: slideLeft 0.3s ease;
+}
+
+/* Calendar responsive adjustments */
+@media (max-width: 768px) {
+    .calendar-day-header {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.8rem;
+    }
+
+    .calendar-cell {
+        padding: 0.25rem;
+        min-height: 70px;
+    }
+
+    .cell-date {
+        font-size: 0.9rem;
+    }
+
+    .calendar-event {
+        padding: 0.125rem 0.25rem;
+        font-size: 0.65rem;
+    }
+
+    .calendar-navigation {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .calendar-day-header {
+        /* Show only first letter of day names on very small screens */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: clip;
+        width: 100%;
+    }
+
+        .calendar-day-header::first-letter {
+            display: inline;
+        }
+
+        .calendar-day-header span:not(:first-letter) {
+            display: none;
+        }
+
+    .calendar-cell {
+        min-height: 60px;
+    }
+}
+
+/* Calendar print styles */
+@media print {
+    .calendar-navigation,
+    .calendar-filters {
+        display: none;
+    }
+
+    .calendar-grid {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+
+    .calendar-cell {
+        border-color: #000;
+    }
+
+    .calendar-event {
+        color: #000 !important;
+        background: none !important;
+        border: 1px solid #000;
+    }
+}

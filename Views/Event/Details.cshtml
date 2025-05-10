@@ -1,0 +1,306 @@
+﻿@* Views/Event/Details.cshtml *@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@using GreenMeadowsPortal.Models
+@model EventDetailsViewModel
+
+@{
+    ViewData["Title"] = $"{Model.Event.Title} - Event Details";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+}
+
+<div class="page-header">
+    <div class="page-title">
+        <h1><i class="fas fa-calendar-alt"></i> @Model.Event.Title</h1>
+        <nav class="breadcrumb">
+            <a asp-controller="Dashboard" asp-action="@(Model.Role == "Admin" ? "AdminDashboard" : (Model.Role == "Staff" ? "StaffDashboard" : "HomeownerDashboard"))">Dashboard</a>
+            <span>/</span>
+            <a asp-action="Index">Events</a>
+            <span>/</span>
+            <span>@Model.Event.Title</span>
+        </nav>
+    </div>
+    <div class="page-actions">
+        @if (Model.CanEdit)
+        {
+            <a asp-action="Edit" asp-route-id="@Model.Event.Id" class="btn btn-secondary">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+        }
+        @if (Model.CanDelete)
+        {
+            <a asp-action="Delete" asp-route-id="@Model.Event.Id" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Delete
+            </a>
+        }
+        @if (Model.CanEdit && Model.Event.Status == EventStatus.Scheduled)
+        {
+            <button onclick="showCancelModal()" class="btn btn-warning">
+                <i class="fas fa-ban"></i> Cancel Event
+            </button>
+        }
+        @if (Model.CanEdit && Model.Event.Status == EventStatus.Scheduled && Model.Event.EventDateTime.Date <= DateTime.Today)
+        {
+            <form method="post" asp-action="MarkComplete" asp-route-id="@Model.Event.Id" style="display: inline;">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-check"></i> Mark Complete
+                </button>
+            </form>
+        }
+    </div>
+</div>
+
+<!-- Event Status Banner -->
+@if (Model.Event.Status == EventStatus.Cancelled)
+{
+    <div class="alert alert-danger">
+        <i class="fas fa-ban"></i> This event has been cancelled.
+    </div>
+}
+@if (Model.Event.Status == EventStatus.Completed)
+{
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i> This event has been completed.
+    </div>
+}
+
+<!-- Event Details Card -->
+<div class="event-details-card">
+    <div class="event-details-header">
+        <div class="event-image">
+            @if (!string.IsNullOrEmpty(Model.Event.ImageUrl))
+            {
+                <img src="@Model.Event.ImageUrl" alt="Event Image" />
+            }
+            else
+            {
+                <div class="placeholder-image">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+            }
+        </div>
+        <div class="event-header-info">
+            <div class="event-type-badge event-@Model.Event.EventTypeEnum.ToString().ToLower()">
+                @Model.Event.EventTypeEnum
+            </div>
+            <div class="event-category">@Model.Event.Category</div>
+            <div class="event-status status-@Model.Event.Status.ToString().ToLower()">
+                @Model.Event.Status
+            </div>
+        </div>
+    </div>
+
+    <div class="event-details-body">
+        <!-- Event Information Grid -->
+        <div class="event-info-grid">
+            <div class="info-section">
+                <div class="info-item">
+                    <label><i class="fas fa-calendar"></i> Date</label>
+                    <value>@Model.Event.EventDateFormatted</value>
+                </div>
+                <div class="info-item">
+                    <label><i class="fas fa-clock"></i> Time</label>
+                    <value>@Model.Event.EventTimeFormatted</value>
+                </div>
+                <div class="info-item">
+                    <label><i class="fas fa-map-marker-alt"></i> Location</label>
+                    <value>@Model.Event.Location</value>
+                </div>
+            </div>
+
+            <div class="info-section">
+                @if (!string.IsNullOrEmpty(Model.Event.ContactEmail))
+                {
+                    <div class="info-item">
+                        <label><i class="fas fa-envelope"></i> Contact Email</label>
+                        <value><a href="mailto:@Model.Event.ContactEmail">@Model.Event.ContactEmail</a></value>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.Event.ContactPhone))
+                {
+                    <div class="info-item">
+                        <label><i class="fas fa-phone"></i> Contact Phone</label>
+                        <value><a href="tel:@Model.Event.ContactPhone">@Model.Event.ContactPhone</a></value>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="event-description">
+            <h3>Description</h3>
+            <p>@Html.Raw(Model.Event.Description.Replace("\n", "<br />"))</p>
+        </div>
+
+        <!-- Additional Information -->
+        @if (!string.IsNullOrEmpty(Model.Event.Notes))
+        {
+            <div class="event-notes">
+                <h3>Additional Information</h3>
+                <p>@Html.Raw(Model.Event.Notes.Replace("\n", "<br />"))</p>
+            </div>
+        }
+
+        <!-- Attachments -->
+        @if (!string.IsNullOrEmpty(Model.Event.AttachmentUrl))
+        {
+            <div class="event-attachments">
+                <h3>Attachments</h3>
+                <a href="@Model.Event.AttachmentUrl" target="_blank" class="attachment-link">
+                    <i class="fas fa-file-download"></i> Download Attachment
+                </a>
+            </div>
+        }
+
+        <!-- Registration Section -->
+        @if (Model.Event.RequiresRegistration)
+        {
+            <div class="registration-section">
+                <h3>Registration</h3>
+                <div class="registration-info">
+                    <div class="registration-stats">
+                        <span class="attendee-count">
+                            <i class="fas fa-users"></i>
+                            @Model.Event.AttendeeCount@(Model.Event.MaxAttendees.HasValue ? "/" + Model.Event.MaxAttendees.Value : "") attendees
+                        </span>
+                        @if (Model.Event.MaxAttendees.HasValue)
+                        {
+                            <div class="registration-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: @(Math.Round((double)Model.Event.AttendeeCount / Model.Event.MaxAttendees.Value * 100))%"></div>
+                                </div>
+                                <span class="progress-text">@(Math.Round((double)Model.Event.AttendeeCount / Model.Event.MaxAttendees.Value * 100))% full</span>
+                            </div>
+                        }
+                    </div>
+                    <div class="registration-actions">
+                        @if (Model.IsUserRegistered)
+                        {
+                            <span class="status-badge registered">You are registered</span>
+                            <form method="post" asp-action="Unregister" asp-route-id="@Model.Event.Id" style="display: inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-times"></i> Unregister
+                                </button>
+                            </form>
+                        }
+                        else if (Model.CanRegister && !Model.RegistrationIsFull)
+                        {
+                            <form method="post" asp-action="Register" asp-route-id="@Model.Event.Id" style="display: inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-user-plus"></i> Register for Event
+                                </button>
+                            </form>
+                        }
+                        else if (Model.RegistrationIsFull)
+                        {
+                            <span class="status-badge full">Registration Full</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Attendees List (Admin/Staff Only) -->
+        @if (Model.CanManageAttendees && Model.Attendees.Any())
+        {
+            <div class="attendees-section">
+                <h3>Registered Attendees</h3>
+                <div class="attendees-list">
+                    @foreach (var attendee in Model.Attendees)
+                    {
+                        <div class="attendee-item">
+                            <div class="attendee-avatar">
+                                <img src="@attendee.ProfileImageUrl" alt="@attendee.AttendeeName" />
+                            </div>
+                            <div class="attendee-info">
+                                <h4>@attendee.AttendeeName</h4>
+                                <p>@attendee.AttendeeEmail</p>
+                                <span class="registration-date">Registered: @attendee.RegisteredDate.ToString("MMM dd, yyyy")</span>
+                            </div>
+                            <div class="attendee-status">
+                                <span class="status-badge status-@attendee.Status.ToString().ToLower()">
+                                    @attendee.Status
+                                </span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Event Info Footer -->
+        <div class="event-footer">
+            <div class="event-meta">
+                <span><i class="fas fa-user"></i> Created by @Model.Event.CreatedBy</span>
+                <span><i class="fas fa-clock"></i> Created on @Model.Event.CreatedDate.ToString("MMM dd, yyyy h:mm tt")</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Event Modal -->
+<div id="cancelEventModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Cancel Event</h3>
+            <span class="close">&times;</span>
+        </div>
+        <form method="post" asp-action="Cancel" asp-route-id="@Model.Event.Id">
+            @Html.AntiForgeryToken()
+            <div class="modal-body">
+                <p>Are you sure you want to cancel this event? This action cannot be undone.</p>
+                <div class="form-group">
+                    <label for="reason">Reason for cancellation:</label>
+                    <textarea id="reason" name="reason" class="form-control" required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="hideCancelModal()">Cancel</button>
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-ban"></i> Cancel Event
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/events.css">
+}
+
+@section Scripts {
+    <script>
+        function showCancelModal() {
+            document.getElementById('cancelEventModal').style.display = 'block';
+        }
+
+        function hideCancelModal() {
+            document.getElementById('cancelEventModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('cancelEventModal');
+            const closeBtn = modal.querySelector('.close');
+
+            closeBtn.addEventListener('click', hideCancelModal);
+
+            window.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    hideCancelModal();
+                }
+            });
+
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function() {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    alert.style.display = 'none';
+                });
+            }, 5000);
+        });
+    </script>
+}

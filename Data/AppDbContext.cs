@@ -21,6 +21,9 @@ namespace GreenMeadowsPortal.Data
         public DbSet<DocumentModel> Documents { get; set; }
         public DbSet<ServiceRequest> ServiceRequests { get; set; } // Add this line
                                                                    // Add the forum-related DbSets
+                                                                   // Add these DbSet properties to your AppDbContext class:
+        public DbSet<EventModel> EventModels { get; set; }
+        public DbSet<EventAttendee> EventAttendees { get; set; }
         public DbSet<ForumTopic> ForumTopics { get; set; }
         public DbSet<ForumReply> ForumReplies { get; set; }
         public DbSet<ForumReport> ForumReports { get; set; }
@@ -148,6 +151,43 @@ namespace GreenMeadowsPortal.Data
 
             builder.Entity<Feedback>()
                 .HasIndex(f => f.AdminUserId);
+            // Event relationships
+            builder.Entity<EventModel>()
+                .HasOne(e => e.CreatedBy)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<EventModel>()
+                .HasOne(e => e.LastModifiedBy)
+                .WithMany()
+                .HasForeignKey(e => e.LastModifiedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<EventAttendee>()
+                .HasOne(ea => ea.Event)
+                .WithMany(e => e.Attendees)
+                .HasForeignKey(ea => ea.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<EventAttendee>()
+                .HasOne(ea => ea.Attendee)
+                .WithMany()
+                .HasForeignKey(ea => ea.AttendeeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Event indexes
+            builder.Entity<EventModel>()
+                .HasIndex(e => e.EventDateTime);
+
+            builder.Entity<EventModel>()
+                .HasIndex(e => e.EventTypeEnum);
+
+            builder.Entity<EventModel>()
+                .HasIndex(e => e.Category);
+
+            builder.Entity<EventModel>()
+                .HasIndex(e => e.Status);
 
         }
     }

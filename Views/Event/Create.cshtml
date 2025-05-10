@@ -1,0 +1,253 @@
+﻿@* Views/Event/Create.cshtml *@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using GreenMeadowsPortal.ViewModels
+@using GreenMeadowsPortal.Models
+@model EventCreateViewModel
+
+@{
+    ViewData["Title"] = "Create Event";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+}
+
+<div class="page-header">
+    <div class="page-title">
+        <h1><i class="fas fa-calendar-plus"></i> Create New Event</h1>
+        <nav class="breadcrumb">
+            <a asp-controller="Dashboard" asp-action="AdminDashboard">Dashboard</a>
+            <span>/</span>
+            <a asp-action="Index">Events</a>
+            <span>/</span>
+            <span>Create</span>
+        </nav>
+    </div>
+</div>
+
+<!-- Error Summary -->
+<div asp-validation-summary="All" class="alert alert-danger"></div>
+
+<!-- Event Form Card -->
+<form asp-action="Create" method="post" enctype="multipart/form-data" class="form-card">
+    @Html.AntiForgeryToken()
+
+    <div class="form-section">
+        <h3>Basic Information</h3>
+
+        <div class="form-group">
+            <label asp-for="Title" class="form-label required"></label>
+            <input asp-for="Title" class="form-control" placeholder="Enter event title" />
+            <span asp-validation-for="Title" class="field-validation-error"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Description" class="form-label required"></label>
+            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Describe the event..."></textarea>
+            <span asp-validation-for="Description" class="field-validation-error"></span>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label asp-for="EventTypeEnum" class="form-label required"></label>
+                <select asp-for="EventTypeEnum" class="form-select">
+                    @foreach (EventType type in Enum.GetValues<EventType>())
+                    {
+                        <option value="@type">@type</option>
+                    }
+                </select>
+                <span asp-validation-for="EventTypeEnum" class="field-validation-error"></span>
+            </div>
+
+            <div class="form-group col-md-6">
+                <label asp-for="Category" class="form-label"></label>
+                <select asp-for="Category" class="form-select">
+                    <option value="">Select category</option>
+                    <option value="Community">Community</option>
+                    <option value="HOA Board">HOA Board</option>
+                    <option value="Maintenance">Maintenance</option>
+                    <option value="Emergency">Emergency</option>
+                    <option value="Social">Social</option>
+                    <option value="Landscaping">Landscaping</option>
+                    <option value="Amenity">Amenity</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <h3>Date & Time</h3>
+
+        <div class="form-group">
+            <label asp-for="EventDateTime" class="form-label required"></label>
+            <input asp-for="EventDateTime" type="date" class="form-control" />
+            <span asp-validation-for="EventDateTime" class="field-validation-error"></span>
+        </div>
+
+        <div class="form-group">
+            <div class="form-check">
+                <input asp-for="IsAllDay" class="form-check-input" />
+                <label asp-for="IsAllDay" class="form-check-label">
+                    This is an all-day event
+                </label>
+            </div>
+        </div>
+
+        <div id="time-fields" class="time-fields">
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label asp-for="StartTime" class="form-label"></label>
+                    <input asp-for="StartTime" type="time" class="form-control" />
+                    <span asp-validation-for="StartTime" class="field-validation-error"></span>
+                </div>
+
+                <div class="form-group col-md-6">
+                    <label asp-for="EndTime" class="form-label"></label>
+                    <input asp-for="EndTime" type="time" class="form-control" />
+                    <span asp-validation-for="EndTime" class="field-validation-error"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <h3>Location & Contact</h3>
+
+        <div class="form-group">
+            <label asp-for="Location" class="form-label required"></label>
+            <input asp-for="Location" class="form-control" placeholder="Event location or address" />
+            <span asp-validation-for="Location" class="field-validation-error"></span>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label asp-for="ContactEmail" class="form-label"></label>
+                <input asp-for="ContactEmail" type="email" class="form-control" placeholder="contact@example.com" />
+                <span asp-validation-for="ContactEmail" class="field-validation-error"></span>
+            </div>
+
+            <div class="form-group col-md-6">
+                <label asp-for="ContactPhone" class="form-label"></label>
+                <input asp-for="ContactPhone" type="tel" class="form-control" placeholder="(555) 123-4567" />
+                <span asp-validation-for="ContactPhone" class="field-validation-error"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <h3>Registration Settings</h3>
+
+        <div class="form-group">
+            <div class="form-check">
+                <input asp-for="RequiresRegistration" class="form-check-input" />
+                <label asp-for="RequiresRegistration" class="form-check-label">
+                    This event requires registration
+                </label>
+            </div>
+        </div>
+
+        <div id="registration-fields" class="registration-fields" style="display: none;">
+            <div class="form-group">
+                <label asp-for="MaxAttendees" class="form-label"></label>
+                <input asp-for="MaxAttendees" type="number" class="form-control" min="1" />
+                <small class="form-text text-muted">Leave empty for unlimited attendees</small>
+                <span asp-validation-for="MaxAttendees" class="field-validation-error"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <h3>Additional Details</h3>
+
+        <div class="form-group">
+            <label asp-for="Notes" class="form-label"></label>
+            <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Any additional notes or instructions..."></textarea>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label asp-for="Image" class="form-label"></label>
+                <input asp-for="Image" type="file" class="form-control" accept="image/*" />
+                <small class="form-text text-muted">Upload an image for the event</small>
+            </div>
+
+            <div class="form-group col-md-6">
+                <label asp-for="Attachment" class="form-label"></label>
+                <input asp-for="Attachment" type="file" class="form-control" />
+                <small class="form-text text-muted">Upload any attachments (flyer, registration form, etc.)</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Create Event
+        </button>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-times"></i> Cancel
+        </a>
+    </div>
+</form>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/events.css">
+    <link rel="stylesheet" href="~/css/forms.css">
+}
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // All day event toggle
+            const allDayCheckbox = document.getElementById('IsAllDay');
+            const timeFields = document.getElementById('time-fields');
+
+            function toggleTimeFields() {
+                if (allDayCheckbox.checked) {
+                    timeFields.style.display = 'none';
+                    // Clear time values when all day is selected
+                    document.getElementById('StartTime').value = '';
+                    document.getElementById('EndTime').value = '';
+                } else {
+                    timeFields.style.display = 'block';
+                }
+            }
+
+            allDayCheckbox.addEventListener('change', toggleTimeFields);
+            toggleTimeFields(); // Initial call
+
+            // Registration requirement toggle
+            const registrationCheckbox = document.getElementById('RequiresRegistration');
+            const registrationFields = document.getElementById('registration-fields');
+
+            function toggleRegistrationFields() {
+                if (registrationCheckbox.checked) {
+                    registrationFields.style.display = 'block';
+                } else {
+                    registrationFields.style.display = 'none';
+                    // Clear max attendees when registration is not required
+                    document.getElementById('MaxAttendees').value = '';
+                }
+            }
+
+            registrationCheckbox.addEventListener('change', toggleRegistrationFields);
+            toggleRegistrationFields(); // Initial call
+
+            // Form validation
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                const startTime = document.getElementById('StartTime').value;
+                const endTime = document.getElementById('EndTime').value;
+
+                if (!allDayCheckbox.checked && startTime && endTime) {
+                    if (endTime <= startTime) {
+                        e.preventDefault();
+                        alert('End time must be after start time.');
+                        return false;
+                    }
+                }
+            });
+        });
+    </script>
+}

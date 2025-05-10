@@ -27,6 +27,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 builder.Services.AddControllersWithViews();
 
 // Register services
+builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<FeedbackService>();
 builder.Services.AddScoped<IForumService, ForumService>();
 builder.Services.AddScoped<ServiceRequestService>();
@@ -80,6 +81,10 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "userManagement",
     pattern: "{controller=UserManagement}/{action=Index}/{id?}");
+app.MapControllerRoute(
+    name: "events-redirect",
+    pattern: "Events/{*catchall}",
+    defaults: new { controller = "Event", action = "Index" });
 // Add API controller routes
 app.MapControllers();
 

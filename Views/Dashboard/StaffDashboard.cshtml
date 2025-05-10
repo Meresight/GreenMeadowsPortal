@@ -118,7 +118,7 @@
                             <p>Upcoming Events</p>
                         </div>
                         <div class="stat-footer">
-                            <a href="/Events">View <i class="fas fa-arrow-right"></i></a>
+                            <a href="/Event" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
                         </div>
                     </div>
                 </div>
@@ -222,7 +222,7 @@
                 <div class="content-section">
                     <div class="section-header">
                         <h2>Upcoming Events</h2>
-                        <a href="/Events" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+                        <a href="/Event" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
                     </div>
 
                     @if (Model.UpcomingEventsList != null && Model.UpcomingEventsList.Count > 0)
@@ -243,8 +243,8 @@
                                         </div>
                                     </div>
                                     <div class="event-actions">
-                                        <a href="/Events/Details/@evt.Id" class="btn small-btn">View</a>
-                                        <a href="/Events/Edit/@evt.Id" class="btn small-btn primary">Manage</a>
+                                        <a href="/Event/Details/@evt.Id" class="btn small-btn">View</a>
+                                        <a href="/Event/Edit/@evt.Id" class="btn small-btn primary">Manage</a>
                                     </div>
                                 </div>
                             }
